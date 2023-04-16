@@ -47,6 +47,8 @@ Curvas = []
 PontosClicados = []
 PoligonoDeControle = None
 
+Linha = []
+
 PosAtualDoMouse = Ponto()
 nPontoAtual = 0
 mouseClicked = False
@@ -97,18 +99,18 @@ def ImprimePonto(P: Ponto, x: int, y: int, cor: tuple):
 #  Funcao chamada na 'display'
 # **********************************************************************
 def ImprimeMensagens():    
-    PrintString(Mensagens[nPontoAtual], -14, 13, White)
-
-    if nPontoAtual > 0:
-        PrintString("Ultimo ponto clicado: ", -14, 11, Red)
-        ImprimePonto(PontosClicados[nPontoAtual-1], -14, 9, Red)
+    # PrintString(Mensagens[len(PontosClicados)], -14, 13, White)
     
-    PrintString("Mouse pos: ", 5, 11, White)
-    ImprimePonto(PosAtualDoMouse, 5, 9, White)
+    # if nPontoAtual > 0:
+    #     PrintString("Ultimo ponto clicado: ", -14, 11, Red)
+    #     ImprimePonto(PontosClicados[nPontoAtual-1], -14, 9, Red)
+    
+    PrintString("Mouse pos: ", -14, 11, White)
+    ImprimePonto(PosAtualDoMouse, -11, 11, White)
     
     
-    PrintString("Mouse: ", 5, 13, White)
-    PrintString("Up", 10, 13, White) if mouseClicked else PrintString("Down", 10, 13, White)
+    PrintString("Mouse: ", -14, 9, White)
+    PrintString("Down", -12, 9, White) if mouseClicked else PrintString("Up", -12, 9, White)
     
 
 
@@ -236,6 +238,9 @@ def display():
 
     if(nPontoAtual):
         DesenhaLinha(PontosClicados[nPontoAtual-1], PosAtualDoMouse)
+        
+    if(len(Linha) > 1):
+        DesenhaLinha(Linha[0], Linha[1])
 
     glLineWidth(3)
     defineCor(Red)
@@ -311,6 +316,7 @@ def mouse(button: int, state: int, x: int, y: int):
     global curvaCriada
     global arrastaCurva
     global bloqueiaSubida
+    global Linha
     
     curvaCriada = False;
     
@@ -348,6 +354,7 @@ def mouse(button: int, state: int, x: int, y: int):
             if(len(PontosClicados) == 2):
                 bloqueiaSubida = True
             PontosClicados.append(ConvertePonto(Ponto(x, y)))
+            Linha.append(ConvertePonto(Ponto(x,y)))
             PosAtualDoMouse = PontosClicados[len(PontosClicados)-1];
             
         if(state == GLUT_UP):
@@ -356,6 +363,7 @@ def mouse(button: int, state: int, x: int, y: int):
                    
             if(bloqueiaSubida == False):
                 PontosClicados.append(ConvertePonto(Ponto(x, y)))
+                Linha.append(ConvertePonto(Ponto(x,y)))
                 PosAtualDoMouse = PontosClicados[len(PontosClicados)-1];
                 
             bloqueiaSubida = False
@@ -371,6 +379,8 @@ def mouse(button: int, state: int, x: int, y: int):
     if len(PontosClicados) == 3:
         CriaCurvas()
         curvaCriada = True;
+        Linha.clear()
+        
         
     if(state == GLUT_DOWN and len(PontosClicados) == 2):
         return
@@ -412,7 +422,7 @@ glutInit(sys.argv)
 glutInitDisplayMode(GLUT_DOUBLE | GLUT_DEPTH | GLUT_RGB)
 
 # Define o tamanho inicial da janela grafica do programa
-glutInitWindowSize(500, 500)
+glutInitWindowSize(1400, 700)
 glutInitWindowPosition(100, 100)
 
 # Cria a janela na tela, definindo o nome da
