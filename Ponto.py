@@ -67,6 +67,10 @@ class Ponto:
         self.y = yr
         self.z = zr
 
+    def to_string(self):
+        S = f'({self.x:.2f}, {self.y:.2f})'
+        return S
+
 # ********************************************************************** */
 #                                                                        */
 #  Calcula a interseccao entre 2 retas (no plano "XY" Z = 0)             */

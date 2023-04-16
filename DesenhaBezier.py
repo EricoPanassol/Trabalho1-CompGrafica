@@ -25,7 +25,10 @@ from Poligonos import *
 from InstanciaBZ import *
 from Bezier import *
 from ListaDeCoresRGB import *
+from Menu import *
 # ***********************************************************************************
+# Curves Menu
+menu = Menu()
 
 # Modelos de Objetos
 MeiaSeta = Polygon()
@@ -48,6 +51,7 @@ PontosClicados = []
 PoligonoDeControle = None
 
 PosAtualDoMouse = Ponto()
+VerdadeiraPosMouse = Ponto()
 nPontoAtual = 0
 mouseClicked = False
 
@@ -57,9 +61,9 @@ Linha = []
 # Lista de mensagens
 #**********************************************************************
 Mensagens = [
-    "Clique o primeiro ponto.",
-    "Clique o segundo ponto.",
-    "Clique o terceiro ponto."
+    "  Clique o primeiro ponto.",
+    "  Clique o segundo ponto.",
+    "  Clique o terceiro ponto."
 ]
 
 MouseState = [
@@ -82,7 +86,7 @@ def PrintString(S: str, x: int, y: int, cor: tuple):
         # GLUT_BITMAP_HELVETICA_10
         # GLUT_BITMAP_TIMES_ROMAN_24
         # GLUT_BITMAP_HELVETICA_18
-        glutBitmapCharacter(GLUT_BITMAP_TIMES_ROMAN_24, ord(c))
+        glutBitmapCharacter(GLUT_BITMAP_9_BY_15, ord(c))
 
 
 # **********************************************************************
@@ -97,20 +101,17 @@ def ImprimePonto(P: Ponto, x: int, y: int, cor: tuple):
 #  Funcao chamada na 'display'
 # **********************************************************************
 def ImprimeMensagens():    
-    PrintString(Mensagens[len(PontosClicados)], -14, 13, White)
+    PrintString(Mensagens[len(PontosClicados)], -15, -14, White)
 
     # if nPontoAtual > 0:
     #     PrintString("Ultimo ponto clicado: ", -14, 11, Red)
     #     ImprimePonto(PontosClicados[nPontoAtual-1], -14, 9, Red)
+    PrintString(f"Mouse pos: {PosAtualDoMouse.to_string()}", -3, -14, White)
+    #ImprimePonto(PosAtualDoMouse, -1, -14, White)
     
-    PrintString("Mouse pos: ", -14, 11, White)
-    ImprimePonto(PosAtualDoMouse, -11, 11, White)
+    PrintString(f"Mouse: {'Down' if  mouseClicked else 'Up'}", 11, -14, White)
+    #PrintString("Down", 13, -14, White) if mouseClicked else PrintString("Up", 13, -14, White)
     
-    
-    PrintString("Mouse: ", -14, 9, White)
-    PrintString("Up", -12, 9, White) if mouseClicked else PrintString("Down", -12, 9, White)
-    
-
 
 # **********************************************************************
 def animate():
@@ -148,8 +149,8 @@ def DesenhaEixos():
     glVertex2f(Min.x,Meio.y)
     glVertex2f(Max.x,Meio.y)
     #  eixo vertical
-    glVertex2f(Meio.x,Min.y)
-    glVertex2f(Meio.x,Max.y)
+    glVertex2f(Meio.x,Min.y+2)
+    glVertex2f(Meio.x,Max.y-1)
     glEnd()
 
 # **************************************************************
@@ -175,6 +176,8 @@ def init():
     d:float = 15
     Min = Ponto(-d,-d)
     Max = Ponto(d,d)
+
+    menu.setup_menu_options()
 
 # ***********************************************************************************
 def DesenhaLinha (P1: Ponto, P2: Ponto):
@@ -225,8 +228,9 @@ def display():
     glLineWidth(1)
     defineCor(White) 
 
-    DesenhaMenu()
+    #DesenhaMenu()
     DesenhaEixos()
+    menu.draw()
     
     nPontoAtual = len(PontosClicados)
 
@@ -305,53 +309,65 @@ def ConvertePonto(P: Ponto) -> Ponto:
 def mouse(button: int, state: int, x: int, y: int):
     global PontoClicado
     global PosAtualDoMouse
+    global VerdadeiraPosMouse
     global mouseClicked
     global nPontoAtual
     global Linha
     
     # Se for o botão direito deixa criar curvas clicando em 3 pontos
     # se for o botão esquerdo ele cria a curva de bezier a partir do rubberbanding
-    if(button == GLUT_RIGHT_BUTTON):
-        if(state == GLUT_DOWN):
-            print("Mouse down")
-            mouseClicked = True;
-        
-        if(state == GLUT_UP):
-            print("Mouse up")
-            mouseClicked = False;
-            PontosClicados.append(ConvertePonto(Ponto(x, y)))
-            PosAtualDoMouse = PontosClicados[len(PontosClicados)-1];
 
-    if(button == GLUT_LEFT_BUTTON):
-        if(state == GLUT_DOWN):
-            print("Mouse down")
-            mouseClicked = True;
+    aux_ponto = ConvertePonto(Ponto(x,y))
+
+    if(VerdadeiraPosMouse.y > 14):
+        if(button == GLUT_LEFT_BUTTON and state == GLUT_DOWN):
+            mouseClicked = True
+            menu.get_option_click(aux_ponto,state)
+            if(menu.options[6]["is_active"]):
+                Curvas.clear()
+                PontosClicados.clear()
+                Linha.clear()
+                menu.options[6]["is_active"] = False
+                return
+            return 
+        if(button == GLUT_LEFT_BUTTON and state == GLUT_UP):
+            mouseClicked = False
+            return
+
+    if(button == GLUT_LEFT_BUTTON and state == GLUT_DOWN):
+        print("Mouse down")
+        mouseClicked = True
+        
+        numPontos = len(PontosClicados)
+        if (numPontos == 0):
+            PontosClicados.append(ConvertePonto(Ponto(x,y)))
+            Linha.append(ConvertePonto(Ponto(x,y)))
             
-            numPontos = len(PontosClicados)
-            if (numPontos > 0):
-                pass
-            else:
-                PontosClicados.append(ConvertePonto(Ponto(x,y)))
-                Linha.append(ConvertePonto(Ponto(x,y)))
-                
-                PosAtualDoMouse = PontosClicados[len(PontosClicados)-1];
-            
-        if(state == GLUT_UP):
-            print("Mouse up")
-            mouseClicked = False;
-            PontosClicados.append(ConvertePonto(Ponto(x, y)))
             PosAtualDoMouse = PontosClicados[len(PontosClicados)-1];
-            Linha.append(ConvertePonto(Ponto(x, y)))
+        
+    if(button == GLUT_LEFT_BUTTON and state == GLUT_UP):
+        
+        if(PosAtualDoMouse.y >= 14):
+            mouseClicked = False
+            return
+        
+        print("Mouse up")
+        mouseClicked = False;
+        PontosClicados.append(ConvertePonto(Ponto(x, y)))
+        PosAtualDoMouse = PontosClicados[len(PontosClicados)-1];
+        Linha.append(ConvertePonto(Ponto(x, y)))
+
+        
         
     if len(PontosClicados) == 3:
         CriaCurvas()
         PontosClicados.clear()
         Linha.clear()
         
-    if(state == GLUT_DOWN and len(PontosClicados) == 2):
-        return
-    if(button == GLUT_RIGHT_BUTTON):
-        return
+    # if(state == GLUT_DOWN and len(PontosClicados) == 2):
+    #     return
+    # if(button == GLUT_RIGHT_BUTTON):
+    #     return
 
     # PontoConvertido = ConvertePonto(Ponto(x, y))
     # print(f"Mouse clicado na janela: ({x}, {y})")
@@ -371,6 +387,14 @@ def Motion(x: int, y: int):
     PosAtualDoMouse.imprime("Mouse:")
     print('')
 
+def PassiveMotion(x: int, y: int):
+    global VerdadeiraPosMouse
+
+    P = Ponto(x,y)
+    VerdadeiraPosMouse = ConvertePonto(P)
+    VerdadeiraPosMouse.imprime("Mouse:")
+    print('')
+
 # ***********************************************************************************
 # Programa Principal
 # ***********************************************************************************
@@ -381,7 +405,7 @@ glutInit(sys.argv)
 glutInitDisplayMode(GLUT_DOUBLE | GLUT_DEPTH | GLUT_RGB)
 
 # Define o tamanho inicial da janela grafica do programa
-glutInitWindowSize(1400, 700)
+glutInitWindowSize(1200, 700)
 # glutInitWindowPosition(100, 100)
 
 # Cria a janela na tela, definindo o nome da
@@ -424,6 +448,7 @@ glutKeyboardFunc(keyboard)
 glutSpecialFunc(arrow_keys)
 glutMouseFunc(mouse)
 glutMotionFunc(Motion)
+glutPassiveMotionFunc(PassiveMotion)
 
 try:
     glutMainLoop()

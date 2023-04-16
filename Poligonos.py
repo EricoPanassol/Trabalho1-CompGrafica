@@ -36,6 +36,12 @@ class Polygon:
             glVertex3f(V.x,V.y,V.z)
         glEnd();
 
+    def desenhaRetangulo(self):
+        glBegin(GL_QUADS)
+        for V in self.Vertices:
+            glVertex3f(V.x,V.y,V.z)
+        glEnd();
+
     def desenhaVertices(self):
         glBegin(GL_POINTS);
         for V in self.Vertices:
