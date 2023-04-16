@@ -36,7 +36,7 @@ Min = Ponto()
 Max = Ponto()
 
 # lista de instancias do Personagens
-Personagens = [] 
+Personagens = []
 
 # ***********************************************************************************
 # Lista de curvas Bezier
@@ -55,13 +55,13 @@ mouseClicked = False
 arrastaCurva = False
 bloqueiaSubida = False
 
-#**********************************************************************
+# **********************************************************************
 # Lista de mensagens
-#**********************************************************************
+# **********************************************************************
 Mensagens = [
-    "Clique o primeiro ponto.",
-    "Clique o segundo ponto.",
-    "Clique o terceiro ponto."
+    "Clique o 2° ponto.",
+    "Clique o 3° ponto.",
+    "Clique o 1° ponto.",
 ]
 
 MouseState = [
@@ -72,14 +72,19 @@ MouseState = [
 angulo = 0.0
 desenha = True
 
+mode = 0
+pontoAuxiliar = Ponto()
+firstCurve = True
 
 # **********************************************************************
 # Imprime o texto S na posicao (x,y), com a cor 'cor'
 # **********************************************************************
+
+
 def PrintString(S: str, x: int, y: int, cor: tuple):
-    defineCor(cor) 
-    glRasterPos3f(x, y, 0) # define posicao na tela
-    
+    defineCor(cor)
+    glRasterPos3f(x, y, 0)  # define posicao na tela
+
     for c in S:
         # GLUT_BITMAP_HELVETICA_10
         # GLUT_BITMAP_TIMES_ROMAN_24
@@ -98,29 +103,37 @@ def ImprimePonto(P: Ponto, x: int, y: int, cor: tuple):
 #  Imprime as mensagens do programa.
 #  Funcao chamada na 'display'
 # **********************************************************************
-def ImprimeMensagens():    
-    # PrintString(Mensagens[len(PontosClicados)], -14, 13, White)
+
+
+def ImprimeMensagens():
+    PrintString(Mensagens[len(PontosClicados)-1], -14, 13, White)
+    
+    # if(len(PontosClicados) == 0):
+    #     PrintString("Clique no 1° ponto", -14, 13, White)
+    # elif(len(PontosClicados) == 1):
+    #     PrintString("Clique no 2° ponto", -14, 13, White)
+    # else:
+    #     PrintString("Clique no 3° ponto", -14, 13, White)
     
     # if nPontoAtual > 0:
     #     PrintString("Ultimo ponto clicado: ", -14, 11, Red)
     #     ImprimePonto(PontosClicados[nPontoAtual-1], -14, 9, Red)
-    
+
     PrintString("Mouse pos: ", -14, 11, White)
     ImprimePonto(PosAtualDoMouse, -11, 11, White)
-    
-    
+
     PrintString("Mouse: ", -14, 9, White)
-    PrintString("Down", -12, 9, White) if mouseClicked else PrintString("Up", -12, 9, White)
-    
+    PrintString("Down", -12, 9,
+                White) if mouseClicked else PrintString("Up", -12, 9, White)
 
 
 # **********************************************************************
 def animate():
     glutPostRedisplay()
-     
+
 
 # ***********************************************************************************
-def reshape(w,h):
+def reshape(w, h):
     global Min, Max
 
     # Reseta sistema de coordenadas antes de modifica-lo
@@ -129,42 +142,48 @@ def reshape(w,h):
 
     # Define a area a ser ocupada pela area OpenGL dentro da Janela
     glViewport(0, 0, w, h)
-    
+
     # Define os limites logicos da area OpenGL dentro da Janela
     glOrtho(Min.x, Max.x, Min.y, Max.y, -10, 10)
 
-    glMatrixMode (GL_MODELVIEW)
+    glMatrixMode(GL_MODELVIEW)
     glLoadIdentity()
 
 # **************************************************************
+
+
 def DesenhaEixos():
     global Min, Max
 
-    Meio = Ponto(); 
+    Meio = Ponto()
     Meio.x = (Max.x+Min.x)/2
     Meio.y = (Max.y+Min.y)/2
     Meio.z = (Max.z+Min.z)/2
 
     glBegin(GL_LINES)
     #  eixo horizontal
-    glVertex2f(Min.x,Meio.y)
-    glVertex2f(Max.x,Meio.y)
+    glVertex2f(Min.x, Meio.y)
+    glVertex2f(Max.x, Meio.y)
     #  eixo vertical
-    glVertex2f(Meio.x,Min.y)
-    glVertex2f(Meio.x,Max.y)
+    glVertex2f(Meio.x, Min.y)
+    glVertex2f(Meio.x, Max.y)
     glEnd()
 
 # **************************************************************
+
+
 def CarregaModelos():
     global MeiaSeta, Mastro
     MeiaSeta.LePontosDeArquivo("MeiaSeta.txt")
     Mastro.LePontosDeArquivo("Mastro.txt")
 
 # **************************************************************
+
+
 def CriaCurvas():
     global Curvas
     C = Bezier(PontosClicados[0], PontosClicados[1], PontosClicados[2])
-    if(arrastaCurva == True):
+    if (arrastaCurva == True):
         Curvas[len(Curvas)-1] = C
     else:
         Curvas.append(C)
@@ -174,22 +193,26 @@ def CriaCurvas():
 def init():
     global Min, Max
     # Define a cor do fundo da tela (PRETO)
-    glClearColor(0,0,0,0)
+    glClearColor(0, 0, 0, 0)
 
     CarregaModelos()
 
-    d:float = 15
-    Min = Ponto(-d,-d)
-    Max = Ponto(d,d)
+    d: float = 15
+    Min = Ponto(-d, -d)
+    Max = Ponto(d, d)
 
 # ***********************************************************************************
-def DesenhaLinha (P1: Ponto, P2: Ponto):
+
+
+def DesenhaLinha(P1: Ponto, P2: Ponto):
     glBegin(GL_LINES)
-    glVertex3f(P1.x,P1.y,P1.z)
-    glVertex3f(P2.x,P2.y,P2.z)
+    glVertex3f(P1.x, P1.y, P1.z)
+    glVertex3f(P2.x, P2.y, P2.z)
     glEnd()
 
 # ***********************************************************************************
+
+
 def DesenhaCurvas():
     for I in Curvas:
         defineCor(Yellow)
@@ -198,6 +221,8 @@ def DesenhaCurvas():
         I.TracaPoligonoDeControle()
 
 # **********************************************************************
+
+
 def DesenhaPontos():
     defineCor(Red)
     glPointSize(4)
@@ -209,16 +234,20 @@ def DesenhaPontos():
     glPointSize(1)
 
 # **********************************************************************
+
+
 def DesenhaMenu():
     glPushMatrix()
-    glTranslated(11,13,0) # veja o arquivo MeiaSeta.txt
+    glTranslated(11, 13, 0)  # veja o arquivo MeiaSeta.txt
     MeiaSeta.desenhaPoligono()
     glPopMatrix()
 
 # ***********************************************************************************
+
+
 def display():
 
-	# Limpa a tela coma cor de fundo
+    # Limpa a tela coma cor de fundo
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 
     # Define os limites lógicos da área OpenGL dentro da Janela
@@ -226,20 +255,20 @@ def display():
     glLoadIdentity()
 
     # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-	# Coloque aqui as chamadas das rotinas que desenham os objetos
-	# <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+    # Coloque aqui as chamadas das rotinas que desenham os objetos
+    # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     glLineWidth(1)
-    defineCor(White) 
+    defineCor(White)
 
     DesenhaMenu()
     DesenhaEixos()
-    
+
     nPontoAtual = len(PontosClicados)
 
-    if(nPontoAtual):
+    if (nPontoAtual):
         DesenhaLinha(PontosClicados[nPontoAtual-1], PosAtualDoMouse)
-        
-    if(len(Linha) > 1):
+
+    if (len(Linha) > 1):
         DesenhaLinha(Linha[0], Linha[1])
 
     glLineWidth(3)
@@ -252,11 +281,13 @@ def display():
 
 
 # ***********************************************************************************
-# The function called whenever a key is pressed. 
+# The function called whenever a key is pressed.
 # Note the use of Python tuples to pass in: (key, x, y)
 # ESCAPE = '\033'
 # ***********************************************************************************
 ESCAPE = b'\x1b'
+
+
 def keyboard(*args):
     global desenha
 
@@ -269,19 +300,21 @@ def keyboard(*args):
     glutPostRedisplay()
 
 # **********************************************************************
-#  arrow_keys ( a_keys: int, x: int, y: int )   
+#  arrow_keys ( a_keys: int, x: int, y: int )
 # **********************************************************************
+
+
 def arrow_keys(a_keys: int, x: int, y: int):
     if a_keys == GLUT_KEY_UP:         # Se pressionar UP
         glutFullScreen()
-        
+
     if a_keys == GLUT_KEY_DOWN:       # Se pressionar DOWN
         glutPositionWindow(50, 50)
         glutReshapeWindow(700, 500)
-        
+
     if a_keys == GLUT_KEY_LEFT:       # Se pressionar LEFT
         pass
-        
+
     if a_keys == GLUT_KEY_RIGHT:      # Se pressionar RIGHT
         pass
 
@@ -293,6 +326,8 @@ def arrow_keys(a_keys: int, x: int, y: int):
 # (ver funcao reshape)
 # Este codigo e baseado em http://hamala.se/forums/viewtopic.php?t=20
 # **********************************************************************
+
+
 def ConvertePonto(P: Ponto) -> Ponto:
     viewport = glGetIntegerv(GL_VIEWPORT)
     modelview = glGetDoublev(GL_MODELVIEW_MATRIX)
@@ -302,95 +337,143 @@ def ConvertePonto(P: Ponto) -> Ponto:
     wy = P.y
     wz = glReadPixels(P.x, P.y, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT)
     ox, oy, oz = gluUnProject(wx, wy, wz, modelview, projection, viewport)
-    
+
     return Ponto(ox, oy, oz)
 
 # ***********************************************************************************
 # Captura o clique do botao esquerdo do mouse sobre a area de desenho
 # ***********************************************************************************
+
+
 def mouse(button: int, state: int, x: int, y: int):
-    global PontoClicado
-    global PosAtualDoMouse
-    global mouseClicked
-    global nPontoAtual
-    global curvaCriada
-    global arrastaCurva
-    global bloqueiaSubida
-    global Linha
+    global PontosClicados, PosAtualDoMouse, mouseClicked, nPontoAtual, curvaCriada, arrastaCurva, bloqueiaSubida, Linha, mode, pontoAuxiliar, firstCurve
     
-    curvaCriada = False;
+    curvaCriada = False
     
-    print(PontosClicados)
-    
-    if(arrastaCurva == True or len(PontosClicados) == 3):
-        PontosClicados.clear()
-    
-    if(button == GLUT_RIGHT_BUTTON):
-        if(state == GLUT_DOWN):
-            print("Mouse down")
-            mouseClicked = True;
-            
-        if((state == GLUT_UP and len(PontosClicados) != 3) or (state == GLUT_DOWN and len(PontosClicados) == 2)):
-            print("Mouse up")
+    mode = 0
 
-            if(not(state == GLUT_UP and bloqueiaSubida == True)):
+    # **********************************************************************************
+    # ********************** MODE 0 - SEM CONTINUIDADE  ********************************
+    # **********************************************************************************
+    
+    if (mode == 0):
+        if (arrastaCurva == True or len(PontosClicados) == 3):
+            PontosClicados.clear()
+
+        if (button == GLUT_RIGHT_BUTTON):
+            if (state == GLUT_DOWN):
+                print("Mouse down")
+                mouseClicked = True
+
+            if ((state == GLUT_UP and len(PontosClicados) != 3) or (state == GLUT_DOWN and len(PontosClicados) == 2)):
+                print("Mouse up")
+
+                if (not (state == GLUT_UP and bloqueiaSubida == True)):
+                    PontosClicados.append(ConvertePonto(Ponto(x, y)))
+                    PosAtualDoMouse = PontosClicados[len(PontosClicados)-1]
+
+                if (state == GLUT_UP):
+                    mouseClicked = False
+                    bloqueiaSubida = False
+                else:
+                    bloqueiaSubida = True
+
+        if (button == GLUT_LEFT_BUTTON):
+            if (state == GLUT_DOWN):
+                print("Mouse down")
+                mouseClicked = True
+                if (len(PontosClicados) == 2):
+                    bloqueiaSubida = True
                 PontosClicados.append(ConvertePonto(Ponto(x, y)))
-                PosAtualDoMouse = PontosClicados[len(PontosClicados)-1];
-            
-            if(state == GLUT_UP):
+                Linha.append(ConvertePonto(Ponto(x, y)))
+                PosAtualDoMouse = PontosClicados[len(PontosClicados)-1]
+
+            if (state == GLUT_UP):
+                print("Mouse up")
                 mouseClicked = False
+
+                if (bloqueiaSubida == False):
+                    PontosClicados.append(ConvertePonto(Ponto(x, y)))
+                    Linha.append(ConvertePonto(Ponto(x, y)))
+                    PosAtualDoMouse = PontosClicados[len(PontosClicados)-1]
+
                 bloqueiaSubida = False
-            else:
-                bloqueiaSubida = True
-            # nPontoAtual += 1
-            # print(f"Pontos clicados: {nPontoAtual}")
-            
-            # PosAtualDoMouse = PontosClicados[nPontoAtual-1]
 
-    if(button == GLUT_LEFT_BUTTON):
-        if(state == GLUT_DOWN):
-            print("Mouse down")
-            mouseClicked = True;
-            if(len(PontosClicados) == 2):
-                bloqueiaSubida = True
-            PontosClicados.append(ConvertePonto(Ponto(x, y)))
-            Linha.append(ConvertePonto(Ponto(x,y)))
-            PosAtualDoMouse = PontosClicados[len(PontosClicados)-1];
-            
-        if(state == GLUT_UP):
-            print("Mouse up")
-            mouseClicked = False;
-                   
-            if(bloqueiaSubida == False):
-                PontosClicados.append(ConvertePonto(Ponto(x, y)))
-                Linha.append(ConvertePonto(Ponto(x,y)))
-                PosAtualDoMouse = PontosClicados[len(PontosClicados)-1];
+        if (arrastaCurva == True):
+            arrastaCurva = False
+
+        if len(PontosClicados) == 3:
+            CriaCurvas()
+            curvaCriada = True
+            Linha.clear()
+
+        if (state == GLUT_DOWN and len(PontosClicados) == 2):
+            return
+        if (button == GLUT_RIGHT_BUTTON):
+            return
+
+    # **********************************************************************************
+    # ********************** MODE 1 - CONTINUIDADE DE POSIÇÃO **************************
+    # **********************************************************************************
+
+    elif (mode == 1):
+        if (arrastaCurva == True or nPontoAtual == 3):
+            pontoAuxiliar = PontosClicados[2]        
+            PontosClicados.clear()
+            PontosClicados.append(pontoAuxiliar)
+            nPontoAtual = 1
+            Linha.clear()
+            Linha.append(pontoAuxiliar)
+
+        if (button == GLUT_LEFT_BUTTON):
+            if (state == GLUT_DOWN):
+                mouseClicked = True
                 
-            bloqueiaSubida = False
-            # nPontoAtual += 1
-            # print(f"Pontos clicados: {nPontoAtual}")
+                if (len(PontosClicados) == 2):
+                    bloqueiaSubida = True
+               
+                if (firstCurve == True): 
+                    PontosClicados.append(ConvertePonto(Ponto(x, y)))
+                    PosAtualDoMouse = PontosClicados[len(PontosClicados)-1]
+                    Linha.append(ConvertePonto(Ponto(x, y)))
+                else:
+                    print("oi")
+                    if(len(PontosClicados) == 2):
+                        PontosClicados.append(ConvertePonto(Ponto(x, y)))
+                        PosAtualDoMouse = PontosClicados[len(PontosClicados)-1]
+        
+            if (state == GLUT_UP):
+                mouseClicked = False
+                
+                if (bloqueiaSubida == False):
+                    PontosClicados.append(ConvertePonto(Ponto(x, y)))
+                    Linha.append(ConvertePonto(Ponto(x, y)))
+                    nPontoAtual += 1
+                    PosAtualDoMouse = PontosClicados[len(PontosClicados)-1]
+                    
+                bloqueiaSubida = False
+        
+        if (arrastaCurva == True):
+            arrastaCurva = False
+
+        if len(PontosClicados) == 3:
+            CriaCurvas()
+            curvaCriada = True
             
-            # PosAtualDoMouse = PontosClicados[nPontoAtual-1]
-    
-    if(arrastaCurva == True):
-        arrastaCurva = False
-    
-    
-    if len(PontosClicados) == 3:
-        CriaCurvas()
-        curvaCriada = True;
-        Linha.clear()
+            firstCurve = False
         
-        
-    if(state == GLUT_DOWN and len(PontosClicados) == 2):
-        return
-    if(button == GLUT_RIGHT_BUTTON):
-        return
 
-    PontoConvertido = ConvertePonto(Ponto(x, y))
 
-    print(f"Mouse clicado na janela: ({x}, {y})")
-    print(f"Mouse clicado no mundo: ({PontoConvertido.x}, {PontoConvertido.y})")
+        if (state == GLUT_DOWN and len(PontosClicados) == 2):
+            return
+        if (button == GLUT_RIGHT_BUTTON):
+            return    
+
+        print("Pontos =", len(PontosClicados))
+
+    # PontoConvertido = ConvertePonto(Ponto(x, y))
+    # print(f"Mouse clicado na janela: ({x}, {y})")
+    # print(f"Mouse clicado no mundo: ({PontoConvertido.x}, {PontoConvertido.y})")
 
     glutPostRedisplay()
 
@@ -398,23 +481,26 @@ def mouse(button: int, state: int, x: int, y: int):
 # Captura as coordenadas do mouse do mouse sobre a area de
 # desenho, enquanto um dos botoes esta sendo pressionado
 # **********************************************************************
+
+
 def Motion(x: int, y: int):
     global PosAtualDoMouse
     global arrastaCurva
-    
+
     P = Ponto(x, y)
     PosAtualDoMouse = ConvertePonto(P)
-    
-    if(len(PontosClicados) == 3 and curvaCriada == True):
-        arrastaCurva = True;
-        PontosClicados[2] = PosAtualDoMouse;
-        CriaCurvas();
-    PosAtualDoMouse.imprime("Mouse:")
-    print('')
+
+    if (len(PontosClicados) == 3 and curvaCriada == True):
+        arrastaCurva = True
+        PontosClicados[2] = PosAtualDoMouse
+        CriaCurvas()
+    # PosAtualDoMouse.imprime("Mouse:")
+    # print('')
 
 # ***********************************************************************************
 # Programa Principal
 # ***********************************************************************************
+
 
 print("Programa OpenGL")
 
