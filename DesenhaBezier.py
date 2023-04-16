@@ -54,6 +54,7 @@ nPontoAtual = 0
 mouseClicked = False
 arrastaCurva = False
 bloqueiaSubida = False
+primeiraExecucaoModo1 = True
 
 #**********************************************************************
 # Lista de mensagens
@@ -163,11 +164,13 @@ def CarregaModelos():
 # **************************************************************
 def CriaCurvas():
     global Curvas
+    global primeiraExecucaoModo1
     C = Bezier(PontosClicados[0], PontosClicados[1], PontosClicados[2])
     if(arrastaCurva == True):
         Curvas[len(Curvas)-1] = C
     else:
         Curvas.append(C)
+    primeiraExecucaoModo1 = False
 
 
 # ***********************************************************************************
@@ -317,12 +320,15 @@ def mouse(button: int, state: int, x: int, y: int):
     global arrastaCurva
     global bloqueiaSubida
     global Linha
+    global primeiraExecucaoModo1
+    global pontoAuxiliar
     
     curvaCriada = False;
     
     print(PontosClicados)
     
-    if(arrastaCurva == True or len(PontosClicados) == 3):
+    if(arrastaCurva == True or len(PontosClicados) == 3): 
+        pontoAuxiliar = PontosClicados[2] 
         PontosClicados.clear()
     
     if(button == GLUT_RIGHT_BUTTON):
@@ -353,9 +359,15 @@ def mouse(button: int, state: int, x: int, y: int):
             mouseClicked = True;
             if(len(PontosClicados) == 2):
                 bloqueiaSubida = True
-            PontosClicados.append(ConvertePonto(Ponto(x, y)))
-            Linha.append(ConvertePonto(Ponto(x,y)))
-            PosAtualDoMouse = PontosClicados[len(PontosClicados)-1];
+            if(primeiraExecucaoModo1 == False):
+                PontosClicados.append(pontoAuxiliar)
+            if(primeiraExecucaoModo1 == True):
+                PontosClicados.append(ConvertePonto(Ponto(x, y)))
+                Linha.append(ConvertePonto(Ponto(x,y)))
+                PosAtualDoMouse = PontosClicados[len(PontosClicados)-1]
+            
+            
+              
             
         if(state == GLUT_UP):
             print("Mouse up")
