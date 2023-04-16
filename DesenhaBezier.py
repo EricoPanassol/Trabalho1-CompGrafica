@@ -50,8 +50,8 @@ PoligonoDeControle = None
 PosAtualDoMouse = Ponto()
 nPontoAtual = 0
 mouseClicked = False
-
-Linha = []
+arrastaCurva = False
+bloqueiaSubida = False
 
 #**********************************************************************
 # Lista de mensagens
@@ -97,18 +97,18 @@ def ImprimePonto(P: Ponto, x: int, y: int, cor: tuple):
 #  Funcao chamada na 'display'
 # **********************************************************************
 def ImprimeMensagens():    
-    PrintString(Mensagens[len(PontosClicados)], -14, 13, White)
+    PrintString(Mensagens[nPontoAtual], -14, 13, White)
 
-    # if nPontoAtual > 0:
-    #     PrintString("Ultimo ponto clicado: ", -14, 11, Red)
-    #     ImprimePonto(PontosClicados[nPontoAtual-1], -14, 9, Red)
+    if nPontoAtual > 0:
+        PrintString("Ultimo ponto clicado: ", -14, 11, Red)
+        ImprimePonto(PontosClicados[nPontoAtual-1], -14, 9, Red)
     
-    PrintString("Mouse pos: ", -14, 11, White)
-    ImprimePonto(PosAtualDoMouse, -11, 11, White)
+    PrintString("Mouse pos: ", 5, 11, White)
+    ImprimePonto(PosAtualDoMouse, 5, 9, White)
     
     
-    PrintString("Mouse: ", -14, 9, White)
-    PrintString("Up", -12, 9, White) if mouseClicked else PrintString("Down", -12, 9, White)
+    PrintString("Mouse: ", 5, 13, White)
+    PrintString("Up", 10, 13, White) if mouseClicked else PrintString("Down", 10, 13, White)
     
 
 
@@ -162,7 +162,11 @@ def CarregaModelos():
 def CriaCurvas():
     global Curvas
     C = Bezier(PontosClicados[0], PontosClicados[1], PontosClicados[2])
-    Curvas.append(C)
+    if(arrastaCurva == True):
+        Curvas[len(Curvas)-1] = C
+    else:
+        Curvas.append(C)
+
 
 # ***********************************************************************************
 def init():
@@ -232,9 +236,6 @@ def display():
 
     if(nPontoAtual):
         DesenhaLinha(PontosClicados[nPontoAtual-1], PosAtualDoMouse)
-        
-    if(len(Linha) > 1):
-        DesenhaLinha(Linha[0], Linha[1])
 
     glLineWidth(3)
     defineCor(Red)
@@ -307,55 +308,79 @@ def mouse(button: int, state: int, x: int, y: int):
     global PosAtualDoMouse
     global mouseClicked
     global nPontoAtual
-    global Linha
+    global curvaCriada
+    global arrastaCurva
+    global bloqueiaSubida
     
-    # Se for o botão direito deixa criar curvas clicando em 3 pontos
-    # se for o botão esquerdo ele cria a curva de bezier a partir do rubberbanding
+    curvaCriada = False;
+    
+    print(PontosClicados)
+    
+    if(arrastaCurva == True or len(PontosClicados) == 3):
+        PontosClicados.clear()
+    
     if(button == GLUT_RIGHT_BUTTON):
         if(state == GLUT_DOWN):
             print("Mouse down")
             mouseClicked = True;
-        
-        if(state == GLUT_UP):
+            
+        if((state == GLUT_UP and len(PontosClicados) != 3) or (state == GLUT_DOWN and len(PontosClicados) == 2)):
             print("Mouse up")
-            mouseClicked = False;
-            PontosClicados.append(ConvertePonto(Ponto(x, y)))
-            PosAtualDoMouse = PontosClicados[len(PontosClicados)-1];
+
+            if(not(state == GLUT_UP and bloqueiaSubida == True)):
+                PontosClicados.append(ConvertePonto(Ponto(x, y)))
+                PosAtualDoMouse = PontosClicados[len(PontosClicados)-1];
+            
+            if(state == GLUT_UP):
+                mouseClicked = False
+                bloqueiaSubida = False
+            else:
+                bloqueiaSubida = True
+            # nPontoAtual += 1
+            # print(f"Pontos clicados: {nPontoAtual}")
+            
+            # PosAtualDoMouse = PontosClicados[nPontoAtual-1]
 
     if(button == GLUT_LEFT_BUTTON):
         if(state == GLUT_DOWN):
             print("Mouse down")
             mouseClicked = True;
-            
-            numPontos = len(PontosClicados)
-            if (numPontos > 0):
-                pass
-            else:
-                PontosClicados.append(ConvertePonto(Ponto(x,y)))
-                Linha.append(ConvertePonto(Ponto(x,y)))
-                
-                PosAtualDoMouse = PontosClicados[len(PontosClicados)-1];
+            if(len(PontosClicados) == 2):
+                bloqueiaSubida = True
+            PontosClicados.append(ConvertePonto(Ponto(x, y)))
+            PosAtualDoMouse = PontosClicados[len(PontosClicados)-1];
             
         if(state == GLUT_UP):
             print("Mouse up")
             mouseClicked = False;
-            PontosClicados.append(ConvertePonto(Ponto(x, y)))
-            PosAtualDoMouse = PontosClicados[len(PontosClicados)-1];
-            Linha.append(ConvertePonto(Ponto(x, y)))
-        
+                   
+            if(bloqueiaSubida == False):
+                PontosClicados.append(ConvertePonto(Ponto(x, y)))
+                PosAtualDoMouse = PontosClicados[len(PontosClicados)-1];
+                
+            bloqueiaSubida = False
+            # nPontoAtual += 1
+            # print(f"Pontos clicados: {nPontoAtual}")
+            
+            # PosAtualDoMouse = PontosClicados[nPontoAtual-1]
+    
+    if(arrastaCurva == True):
+        arrastaCurva = False
+    
+    
     if len(PontosClicados) == 3:
         CriaCurvas()
-        PontosClicados.clear()
-        Linha.clear()
+        curvaCriada = True;
         
     if(state == GLUT_DOWN and len(PontosClicados) == 2):
         return
     if(button == GLUT_RIGHT_BUTTON):
         return
 
-    # PontoConvertido = ConvertePonto(Ponto(x, y))
-    # print(f"Mouse clicado na janela: ({x}, {y})")
-    # print(f"Mouse clicado no mundo: ({PontoConvertido.x}, {PontoConvertido.y})")
+    PontoConvertido = ConvertePonto(Ponto(x, y))
+
+    print(f"Mouse clicado na janela: ({x}, {y})")
+    print(f"Mouse clicado no mundo: ({PontoConvertido.x}, {PontoConvertido.y})")
 
     glutPostRedisplay()
 
@@ -365,9 +390,15 @@ def mouse(button: int, state: int, x: int, y: int):
 # **********************************************************************
 def Motion(x: int, y: int):
     global PosAtualDoMouse
+    global arrastaCurva
     
     P = Ponto(x, y)
     PosAtualDoMouse = ConvertePonto(P)
+    
+    if(len(PontosClicados) == 3 and curvaCriada == True):
+        arrastaCurva = True;
+        PontosClicados[2] = PosAtualDoMouse;
+        CriaCurvas();
     PosAtualDoMouse.imprime("Mouse:")
     print('')
 
@@ -381,8 +412,8 @@ glutInit(sys.argv)
 glutInitDisplayMode(GLUT_DOUBLE | GLUT_DEPTH | GLUT_RGB)
 
 # Define o tamanho inicial da janela grafica do programa
-glutInitWindowSize(1400, 700)
-# glutInitWindowPosition(100, 100)
+glutInitWindowSize(500, 500)
+glutInitWindowPosition(100, 100)
 
 # Cria a janela na tela, definindo o nome da
 # que aparecera na barra de título da janela
