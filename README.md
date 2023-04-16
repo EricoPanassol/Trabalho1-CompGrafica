@@ -40,7 +40,7 @@ Durante a execução do programa deve ser possível realizar as seguintes opera�
 
 - **Movimentação de vértices:** deve ser possível mover um vértice de qualquer curva. Caso o vértice influencie a continuidade existente entre duas curvas, ambas devem ser alteradas conforme necessário. A movimentação deve ser feita com a técnica de rubber-band aplicada às entidades visíveis (curvas e polígonos de controle);
 
-- **Conexão com uma curva já existente:** deve ser possível selecionar um vértice (inicial ou final de uma curva)_ e, a partir dele, iniciar uma nova curva. A forma de geração da nova curva dependerá do modo de continuidade que estiver ativo, no momento;
+- **Conexão com uma curva já existente:** deve ser possível selecionar um vértice (inicial ou final de uma curva) e, a partir dele, iniciar uma nova curva. A forma de geração da nova curva dependerá do modo de continuidade que estiver ativo, no momento;
 
 - **Atualização do modo de continuidade entre duas curvas:** clicando no vértice que conecta duas curvas, deve ser possível alterar o modo de continuidade entre duas curvas. Atente para as várias possibilidades de aumentar ou diminuir o grau de continuidade entre duas curvas. Uma posterior edição dos vértices destas curvas, deve respeitar o novo modo de continuidade entre as curvas.
 
