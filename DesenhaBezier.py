@@ -344,20 +344,21 @@ def mouse(button: int, state: int, x: int, y: int):
     if(button == GLUT_LEFT_BUTTON):
         if(state == GLUT_DOWN):
             print("Mouse down")
-            numPontos = len(PontosClicados)
-            if (numPontos > 0):
-                pass
-            else:
-                PontosClicados.append(ConvertePonto(Ponto(x,y)))
-                PosAtualDoMouse = PontosClicados[len(PontosClicados)-1];
             mouseClicked = True;
+            if(len(PontosClicados) == 2):
+                bloqueiaSubida = True
+            PontosClicados.append(ConvertePonto(Ponto(x, y)))
+            PosAtualDoMouse = PontosClicados[len(PontosClicados)-1];
             
         if(state == GLUT_UP):
             print("Mouse up")
             mouseClicked = False;
-            
-            PontosClicados.append(ConvertePonto(Ponto(x, y)))
-            PosAtualDoMouse = PontosClicados[len(PontosClicados)-1];
+                   
+            if(bloqueiaSubida == False):
+                PontosClicados.append(ConvertePonto(Ponto(x, y)))
+                PosAtualDoMouse = PontosClicados[len(PontosClicados)-1];
+                
+            bloqueiaSubida = False
             # nPontoAtual += 1
             # print(f"Pontos clicados: {nPontoAtual}")
             
