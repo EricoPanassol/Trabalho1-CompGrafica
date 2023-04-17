@@ -6,28 +6,18 @@ from Poligonos import *
 import time
 
 class Menu:
-    
-
     def __init__(self):
         self.options = []
+        self.active_option = 0
         
-        
-    def add_option(self, option, is_active):
+    def add_option(self, option, is_active, callback):
         self.options.append({
             "option" : option,
-            "is_active" : is_active
+            "is_active" : is_active,
+            "callback": callback
         })
 
-    def setup_menu_options(self):
-        self.add_option("Sem Continuidade", True)
-        self.add_option("Cont de Posição", False)
-        self.add_option("Cont de Derivada", False)
-        self.add_option("Editar Vertices", False)
-        self.add_option("Remover Vertices", False)
-        self.add_option("Poligono de Controle", False)
-        self.add_option("Limpa Tela", False)
-
-    def draw(self):
+    def desenha(self):
         option_box = Polygon()
         option_box.LePontosDeArquivo("OptionBox.txt")
 
@@ -70,36 +60,27 @@ class Menu:
         option_index = int(7*(ponto.x + 15) / 30)
 
         option = self.options[option_index]
-       
+
+        if(self.active_option != option_index):
+            clear = option["callback"]
+            clear()
+
         if(state == GLUT_DOWN):
-            if(option_index < 3):
-                for i in range(3):
+            if(option_index < 5):
+                for i in range(5):
                     self.options[i]["is_active"] = False
 
                 self.options[option_index]["is_active"] = True
-                return
+                self.active_option = option_index
                 
-            
-            if(option_index < 5):
-                if(option["is_active"]):
-                    option["is_active"] = not option["is_active"]
-                    return
-                else:
-                    for i in range(3,5):
-                        self.options[i]["is_active"] = False
-
-                    option["is_active"] = True
-                    return
-            
-            if(option_index == 5):
+            elif(option_index == 5):
                 option["is_active"] = not option["is_active"]
-                return
             
-            if(option_index == 6):
+            elif(option_index == 6):
                 option["is_active"] = True
-
-                
-                
+                limpa_tela = option["callback"]
+                limpa_tela()
+                option["is_active"] = False
 
     def reset(self):
         for option in self.options:

@@ -39,11 +39,11 @@ Min = Ponto()
 Max = Ponto()
 
 # lista de instancias do Personagens
-Personagens = [] 
+#Personagens = [] 
 
 # ***********************************************************************************
 # Lista de curvas Bezier
-Curvas = []
+#Curvas = []
 
 # Variaveis de controle da curva Bezier
 Curvas = []
@@ -52,6 +52,7 @@ PoligonoDeControle = None
 
 PosAtualDoMouse = Ponto()
 VerdadeiraPosMouse = Ponto()
+PontoClicado = Ponto()
 nPontoAtual = 0
 mouseClicked = False
 
@@ -177,7 +178,7 @@ def init():
     Min = Ponto(-d,-d)
     Max = Ponto(d,d)
 
-    menu.setup_menu_options()
+    setup_menu_options()
 
 # ***********************************************************************************
 def DesenhaLinha (P1: Ponto, P2: Ponto):
@@ -230,15 +231,12 @@ def display():
 
     #DesenhaMenu()
     DesenhaEixos()
-    menu.draw()
+    menu.desenha()
     
-    nPontoAtual = len(PontosClicados)
-
-    if(nPontoAtual):
-        DesenhaLinha(PontosClicados[nPontoAtual-1], PosAtualDoMouse)
-        
-    if(len(Linha) > 1):
-        DesenhaLinha(Linha[0], Linha[1])
+    desenha_rubberband()
+         
+    # if(len(Linha) > 1):
+    #     DesenhaLinha(Linha[0], Linha[1])
 
     glLineWidth(3)
     defineCor(Red)
@@ -265,6 +263,11 @@ def keyboard(*args):
         os._exit(0)
     # Forca o redesenho da tela
     glutPostRedisplay()
+
+def desenha_rubberband():
+    num_pontos_clicados = len(PontosClicados)
+    if(num_pontos_clicados > 0):
+        DesenhaLinha(PontosClicados[num_pontos_clicados-1], PosAtualDoMouse)
 
 # **********************************************************************
 #  arrow_keys ( a_keys: int, x: int, y: int )   
@@ -308,61 +311,146 @@ def ConvertePonto(P: Ponto) -> Ponto:
 # ***********************************************************************************
 def mouse(button: int, state: int, x: int, y: int):
     global PontoClicado
+    global PontosClicados
     global PosAtualDoMouse
     global VerdadeiraPosMouse
     global mouseClicked
-    global nPontoAtual
     global Linha
     
     # Se for o botão direito deixa criar curvas clicando em 3 pontos
     # se for o botão esquerdo ele cria a curva de bezier a partir do rubberbanding
 
-    aux_ponto = ConvertePonto(Ponto(x,y))
+    PontoClicado = ConvertePonto(Ponto(x,y))
 
-    if(VerdadeiraPosMouse.y > 14):
-        if(button == GLUT_LEFT_BUTTON and state == GLUT_DOWN):
-            mouseClicked = True
-            menu.get_option_click(aux_ponto,state)
-            if(menu.options[6]["is_active"]):
-                Curvas.clear()
-                PontosClicados.clear()
-                Linha.clear()
-                menu.options[6]["is_active"] = False
-                return
-            return 
-        if(button == GLUT_LEFT_BUTTON and state == GLUT_UP):
-            mouseClicked = False
-            return
+    print(f"PontoClicado.x : {PontoClicado.x}")
 
     if(button == GLUT_LEFT_BUTTON and state == GLUT_DOWN):
-        print("Mouse down")
         mouseClicked = True
-        
-        numPontos = len(PontosClicados)
-        if (numPontos == 0):
-            PontosClicados.append(ConvertePonto(Ponto(x,y)))
-            Linha.append(ConvertePonto(Ponto(x,y)))
+        if(VerdadeiraPosMouse.y > 14):
+            menu.get_option_click(PontoClicado, state)
             
-            PosAtualDoMouse = PontosClicados[len(PontosClicados)-1];
-        
-    if(button == GLUT_LEFT_BUTTON and state == GLUT_UP):
-        
-        if(PosAtualDoMouse.y >= 14):
-            mouseClicked = False
-            return
-        
-        print("Mouse up")
-        mouseClicked = False;
-        PontosClicados.append(ConvertePonto(Ponto(x, y)))
-        PosAtualDoMouse = PontosClicados[len(PontosClicados)-1];
-        Linha.append(ConvertePonto(Ponto(x, y)))
+    elif(button == GLUT_RIGHT_BUTTON and state == GLUT_UP):
+        mouseClicked = False
 
+    clicked_inside_canvas = PontoClicado.y < 14 and PontoClicado.y >= -13
+
+    if(clicked_inside_canvas):
         
+        print("Click no canvas")
+        print(f"len PontosClicados: {len(PontosClicados)}")
         
-    if len(PontosClicados) == 3:
-        CriaCurvas()
-        PontosClicados.clear()
-        Linha.clear()
+        #******************************************
+        #*            SEM CONTINUIDADE          
+        #******************************************
+        if(menu.active_option == 0):
+            if(state == GLUT_DOWN):
+                if(len(PontosClicados) == 0):
+                    print("len == 0")
+                    PontosClicados.append(PontoClicado)
+                    print(f"len PontosClicados: {len(PontosClicados)}")
+                    
+            if(state == GLUT_UP):
+                PontosClicados.append(PontoClicado)
+
+            if(len(PontosClicados) == 3):
+                print("We got a curve, ain't we?")
+                CriaCurvas()
+                ClearPontosClicados()
+
+        #******************************************
+        #*        CONTINUIDADE DE POSICAO          
+        #******************************************
+        if(menu.active_option == 1):
+            if(state == GLUT_DOWN):
+                if(len(PontosClicados) == 0):
+                    print("len == 0")
+                    PontosClicados.append(PontoClicado)
+                    print(f"len PontosClicados: {len(PontosClicados)}")
+                    
+            if(state == GLUT_UP):
+                PontosClicados.append(PontoClicado)
+
+            if(len(PontosClicados) == 3):
+                print("We got a curve, ain't we?")
+                checkpoint = PontosClicados[2] #hehe
+                CriaCurvas()
+                ClearPontosClicados()
+                PontosClicados.append(checkpoint) 
+
+        #******************************************
+        #*        CONTINUIDADE DE DERIVADA          
+        #******************************************
+        if(menu.active_option == 2):
+            if(state == GLUT_DOWN):
+                if(len(PontosClicados) == 0):
+                    print("len == 0")
+                    PontosClicados.append(PontoClicado)
+                    print(f"len PontosClicados: {len(PontosClicados)}")
+                    
+            if(state == GLUT_UP):
+                PontosClicados.append(PontoClicado)
+
+            if(len(PontosClicados) == 3):
+                print("We got a curve, ain't we?")
+                checkpoint_b = PontosClicados[1]
+                checkpoint_c = PontosClicados[2]
+                projected_point = checkpoint_c.__add__(checkpoint_c.__sub__(checkpoint_b))
+                CriaCurvas()
+                ClearPontosClicados()
+                PontosClicados.append(checkpoint_c)
+                PontosClicados.append(projected_point) 
+
+        if(menu.active_option == 3):
+            # Editar Vertices
+            pass
+
+        if(menu.active_option == 4):
+            # Excluir Vertices
+            pass
+
+    glutPostRedisplay()
+    # if(VerdadeiraPosMouse.y > 14 and button == GLUT_LEFT_BUTTON and state == GLUT_DOWN):
+    #     if(button == GLUT_LEFT_BUTTON and state == GLUT_DOWN):
+    #         mouseClicked = True
+    #         menu.get_option_click(PontoClicado,state)
+    #         if(menu.options[6]["is_active"]):
+    #             Curvas.clear()
+    #             PontosClicados.clear()
+    #             Linha.clear()
+    #             menu.options[6]["is_active"] = False
+    #             return
+    #         return 
+    #     if(button == GLUT_LEFT_BUTTON and state == GLUT_UP):
+    #         mouseClicked = False
+    #         return
+
+    # if(button == GLUT_LEFT_BUTTON and state == GLUT_DOWN):
+    #     print("Mouse down")
+    #     mouseClicked = True
+        
+    #     numPontos = len(PontosClicados)
+    #     if (numPontos == 0):
+    #         PontosClicados.append(ConvertePonto(Ponto(x,y)))
+    #         Linha.append(ConvertePonto(Ponto(x,y)))
+            
+    #         PosAtualDoMouse = PontosClicados[len(PontosClicados)-1];
+        
+    # if(button == GLUT_LEFT_BUTTON and state == GLUT_UP):
+        
+    #     if(PosAtualDoMouse.y >= 14):
+    #         mouseClicked = False
+    #         return
+        
+    #     print("Mouse up")
+    #     mouseClicked = False;
+    #     PontosClicados.append(ConvertePonto(Ponto(x, y)))
+    #     PosAtualDoMouse = PontosClicados[len(PontosClicados)-1];
+    #     Linha.append(ConvertePonto(Ponto(x, y)))
+        
+    # if len(PontosClicados) == 3:
+    #     CriaCurvas()
+    #     PontosClicados.clear()
+    #     Linha.clear()
         
     # if(state == GLUT_DOWN and len(PontosClicados) == 2):
     #     return
@@ -373,8 +461,25 @@ def mouse(button: int, state: int, x: int, y: int):
     # print(f"Mouse clicado na janela: ({x}, {y})")
     # print(f"Mouse clicado no mundo: ({PontoConvertido.x}, {PontoConvertido.y})")
 
-    glutPostRedisplay()
+    #glutPostRedisplay()
 
+def setup_menu_options():
+        menu.add_option("Sem Continuidade", True, ClearPontosClicados)
+        menu.add_option("Cont de Posição", False, ClearPontosClicados)
+        menu.add_option("Cont de Derivada", False, ClearPontosClicados)
+        menu.add_option("Editar Vertices", False, ClearPontosClicados)
+        menu.add_option("Remover Vertices", False, ClearPontosClicados)
+        menu.add_option("Poligono de Controle", False, lambda *args : None)
+        menu.add_option("Limpa Tela", False, LimpaTela)
+
+def ClearPontosClicados():
+    PontosClicados.clear()
+    print("Pontos Excluidos!")
+
+def LimpaTela():
+    Curvas.clear()
+    PontosClicados.clear()
+    Linha.clear()
 # **********************************************************************
 # Captura as coordenadas do mouse do mouse sobre a area de
 # desenho, enquanto um dos botoes esta sendo pressionado
@@ -384,16 +489,16 @@ def Motion(x: int, y: int):
     
     P = Ponto(x, y)
     PosAtualDoMouse = ConvertePonto(P)
-    PosAtualDoMouse.imprime("Mouse:")
-    print('')
+    # PosAtualDoMouse.imprime("Mouse:")
+    # print('')
 
 def PassiveMotion(x: int, y: int):
     global VerdadeiraPosMouse
 
     P = Ponto(x,y)
     VerdadeiraPosMouse = ConvertePonto(P)
-    VerdadeiraPosMouse.imprime("Mouse:")
-    print('')
+    # VerdadeiraPosMouse.imprime("Mouse:")
+    # print('')
 
 # ***********************************************************************************
 # Programa Principal
