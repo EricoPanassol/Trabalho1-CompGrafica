@@ -443,7 +443,7 @@ def removeCurve(button: int, state: int, x: int, y: int):
             p1 = [pontos[1].x, pontos[1].y]
             p2 = [pontos[2].x, pontos[2].y]
 
-            if button == GLUT_RIGHT_BUTTON and state == GLUT_DOWN:
+            if button == GLUT_LEFT_BUTTON and state == GLUT_DOWN:
                 point = ConvertePonto(Ponto(x, y))
                 aresta0 = [p0, p1]   
                 aresta1 = [p1, p2]
