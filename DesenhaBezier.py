@@ -25,6 +25,7 @@ from Poligonos import *
 from InstanciaBZ import *
 from Bezier import *
 from ListaDeCoresRGB import *
+import numpy as np
 # ***********************************************************************************
 
 # Modelos de Objetos
@@ -131,7 +132,7 @@ def ImprimeMensagens():
     
     PrintString("N° Curvas: ", -14, 7, White)
     PrintString(str(len(Curvas)), -11, 7, White)
-    
+        
     PrintString("Mode: ", -14, 5, White)
     PrintString(str(mode), -12, 5, White)
 
@@ -180,7 +181,6 @@ def DesenhaEixos():
 
 # **************************************************************
 
-
 def CarregaModelos():
     global MeiaSeta, Mastro
     MeiaSeta.LePontosDeArquivo("MeiaSeta.txt")
@@ -223,10 +223,6 @@ def DesenhaLinha(P1: Ponto, P2: Ponto):
 
 
 def DesenhaCurvas():
-    global desenhaPoligonoControle
-    
-    # desenhaPoligonoControle = True
-    
     for I in Curvas:
         defineCor(Aquamarine)
         I.Traca()
@@ -242,7 +238,8 @@ def DesenhaPontos():
     glPointSize(7)
     glBegin(GL_POINTS)
 
-    for Ponto in PontosClicados:
+    aux = PontosClicados
+    for Ponto in aux:
         glVertex2f(Ponto.x, Ponto.y)
     glEnd()
     glPointSize(1)
@@ -322,7 +319,7 @@ def arrow_keys(a_keys: int, x: int, y: int):
     global desenhaPoligonoControle, mode, firstCurve
     
     if a_keys == GLUT_KEY_UP:         # Se pressionar UP
-        glutFullScreen()
+        Curvas.clear()
 
     if a_keys == GLUT_KEY_DOWN:       # Se pressionar DOWN
         desenhaPoligonoControle = not desenhaPoligonoControle
@@ -330,27 +327,27 @@ def arrow_keys(a_keys: int, x: int, y: int):
     if a_keys == GLUT_KEY_LEFT:       # Se pressionar LEFT
         if(mode <= 0):
             mode = 0
-            clear()
+            clearScreen()
         else:
             firstCurve = True
             mode -= 1
-            clear()
+            clearScreen()
         
     if a_keys == GLUT_KEY_RIGHT:      # Se pressionar RIGHT
         if(mode >= 2):
             mode = 2
-            clear()
+            clearScreen()
         else:
             firstCurve = True
             mode += 1
-            clear()
+            clearScreen()
             
     print("mode =", mode)
 
     glutPostRedisplay()
 
 
-def clear():
+def clearScreen():
     PontosClicados.clear()
     LinhaDerviada.clear()
     Linha.clear()
@@ -380,79 +377,123 @@ def ConvertePonto(P: Ponto) -> Ponto:
 # ***********************************************************************************
 
 
+
+
+
+
+
+
 def mouse(button: int, state: int, x: int, y: int):
-    global PontosClicados, PosAtualDoMouse, mouseClicked, nPontoAtual, curvaCriada, arrastaCurva, bloqueiaSubida, Linha, mode, pontoAuxiliar, firstCurve, desenhaPoligonoControle, pontoAuxiliar2, aux
+    # if(len(Curvas) > 0):
+    #     curva = Curvas[0].getPontos()
+                
+                
+    #     # cria os x e y dos pontos da curva
+    #     pontosDaCurva = []
+    #     p0 = [curva[0].x, curva[0].y]
+    #     p1 = [curva[1].x, curva[1].y]
+    #     p2 = [curva[2].x, curva[2].y]
+        
+        
+    #     # cria os pontos da curva
+    #     ponto0 = ConvertePonto(Ponto(p0[0], p0[1]))
+    #     ponto1 = ConvertePonto(Ponto(p1[0], p0[1]))
+    #     ponto2 = ConvertePonto(Ponto(p2[0], p0[1]))
+    #     print("ponto0 =", ponto0)
+                
+                
+    #     # adiciona os pontos da curva na lista
+    #     pontosDaCurva.append(ponto0)
+    #     pontosDaCurva.append(ponto1)
+    #     pontosDaCurva.append(ponto2)
+        
+        
+    #     # calcula a diff entre os pontos da curva para pegar as arestas
+    #     arestasDaCurva = []
+    #     a0 = ponto1.__sub__(ponto0)
+    #     a1 = ponto2.__sub__(ponto1)
+    #     a2 = ponto2.__sub__(ponto0)
+                
+        
+    #     # adiciona essa diff na lista
+    #     arestasDaCurva.append(a0)
+    #     arestasDaCurva.append(a1)
+    #     arestasDaCurva.append(a2)
+    
+    
+    
+    # on mouse move() -> verifica se a pos do mouse está perto de qualquer vértice do pol de controle e o mouse está down
+    # arrasta o vertice
+    # cuidar para nao arrastar o vértica de uma outra curva enquanto estiver arrastando alguma ja
+        
+
+    if (mode == 0):
+       semContinuidade(button, state, x, y)
+
+
+    elif (mode == 1):
+        continuidadePosicao(button, state, x, y)
+
+    
+    elif(mode == 2):
+        continuidadeDerivada(button, state, x, y)
+
+    glutPostRedisplay()
+
+
+# **********************************************************************
+# Modos de criação de curva
+# 
+# **********************************************************************
+
+
+def semContinuidade(button: int, state: int, x: int, y: int):
+    global PontosClicados, PosAtualDoMouse, mouseClicked, nPontoAtual, curvaCriada, arrastaCurva, bloqueiaSubida, Linha, mode, pontoAuxiliar, firstCurve, pontoAuxiliar2, aux
     
     curvaCriada = False
     
-    # mode = 2
+    if (arrastaCurva == True or len(PontosClicados) == 3):
+        PontosClicados.clear()
 
-    # **********************************************************************************
-    # ********************** MODE 0 - SEM CONTINUIDADE  ********************************
-    # **********************************************************************************
-    
-    if (mode == 0):
-        if (arrastaCurva == True or len(PontosClicados) == 3):
-            PontosClicados.clear()
+    if (button == GLUT_LEFT_BUTTON):
+        if (state == GLUT_DOWN):
+            mouseClicked = True
+            if (len(PontosClicados) == 2):
+                bloqueiaSubida = True
+            PontosClicados.append(ConvertePonto(Ponto(x, y)))
+            Linha.append(ConvertePonto(Ponto(x, y)))
+            PosAtualDoMouse = PontosClicados[len(PontosClicados)-1]
 
-        if (button == GLUT_RIGHT_BUTTON):
-            if (state == GLUT_DOWN):
-                # print("Mouse down")
-                mouseClicked = True
+        if (state == GLUT_UP):
+            mouseClicked = False
 
-            if ((state == GLUT_UP and len(PontosClicados) != 3) or (state == GLUT_DOWN and len(PontosClicados) == 2)):
-                # print("Mouse up")
-
-                if (not (state == GLUT_UP and bloqueiaSubida == True)):
-                    PontosClicados.append(ConvertePonto(Ponto(x, y)))
-                    PosAtualDoMouse = PontosClicados[len(PontosClicados)-1]
-
-                if (state == GLUT_UP):
-                    mouseClicked = False
-                    bloqueiaSubida = False
-                else:
-                    bloqueiaSubida = True
-
-        if (button == GLUT_LEFT_BUTTON):
-            if (state == GLUT_DOWN):
-                # print("Mouse down")
-                mouseClicked = True
-                if (len(PontosClicados) == 2):
-                    bloqueiaSubida = True
+            if (bloqueiaSubida == False):
                 PontosClicados.append(ConvertePonto(Ponto(x, y)))
                 Linha.append(ConvertePonto(Ponto(x, y)))
                 PosAtualDoMouse = PontosClicados[len(PontosClicados)-1]
 
-            if (state == GLUT_UP):
-                # print("Mouse up")
-                mouseClicked = False
+            bloqueiaSubida = False
 
-                if (bloqueiaSubida == False):
-                    PontosClicados.append(ConvertePonto(Ponto(x, y)))
-                    Linha.append(ConvertePonto(Ponto(x, y)))
-                    PosAtualDoMouse = PontosClicados[len(PontosClicados)-1]
+    if (arrastaCurva == True):
+        arrastaCurva = False
 
-                bloqueiaSubida = False
+    if len(PontosClicados) == 3:
+        CriaCurvas()
+        curvaCriada = True
+        Linha.clear()
 
-        if (arrastaCurva == True):
-            arrastaCurva = False
+    if (state == GLUT_DOWN and len(PontosClicados) == 2):
+        return
+    if (button == GLUT_RIGHT_BUTTON):
+        return
 
-        if len(PontosClicados) == 3:
-            CriaCurvas()
-            curvaCriada = True
-            Linha.clear()
 
-        if (state == GLUT_DOWN and len(PontosClicados) == 2):
-            return
-        if (button == GLUT_RIGHT_BUTTON):
-            return
-
-    # **********************************************************************************
-    # ********************** MODE 1 - CONTINUIDADE DE POSIÇÃO **************************
-    # **********************************************************************************
-
-    elif (mode == 1):
-        if (arrastaCurva == True or nPontoAtual == 3):
+def continuidadePosicao(button: int, state: int, x: int, y: int):
+    global PontosClicados, PosAtualDoMouse, mouseClicked, nPontoAtual, curvaCriada, arrastaCurva, bloqueiaSubida, Linha, mode, pontoAuxiliar, firstCurve, pontoAuxiliar2, aux
+    
+    curvaCriada = False
+    
+    if (arrastaCurva == True or nPontoAtual == 3):
             pontoAuxiliar = PontosClicados[2]        
             PontosClicados.clear()
             PontosClicados.append(pontoAuxiliar)
@@ -460,135 +501,120 @@ def mouse(button: int, state: int, x: int, y: int):
             Linha.clear()
             Linha.append(pontoAuxiliar)
 
-        if (button == GLUT_LEFT_BUTTON):
-            if (state == GLUT_DOWN):
-                mouseClicked = True
-                
-                if (len(PontosClicados) == 2):
-                    bloqueiaSubida = True
-               
-                if (firstCurve == True): 
-                    PontosClicados.append(ConvertePonto(Ponto(x, y)))
-                    PosAtualDoMouse = PontosClicados[len(PontosClicados)-1]
-                    Linha.append(ConvertePonto(Ponto(x, y)))
-                else:
-                    if(len(PontosClicados) == 2):
-                        PontosClicados.append(ConvertePonto(Ponto(x, y)))
-                        PosAtualDoMouse = PontosClicados[len(PontosClicados)-1]
-        
-            if (state == GLUT_UP):
-                mouseClicked = False
-                
-                if (bloqueiaSubida == False):
-                    PontosClicados.append(ConvertePonto(Ponto(x, y)))
-                    Linha.append(ConvertePonto(Ponto(x, y)))
-                    nPontoAtual += 1
-                    PosAtualDoMouse = PontosClicados[len(PontosClicados)-1]
-                    
-                bloqueiaSubida = False
-        
-        if (arrastaCurva == True):
-            arrastaCurva = False
-
-        if len(PontosClicados) == 3:
-            CriaCurvas()
-            curvaCriada = True
+    if (button == GLUT_LEFT_BUTTON):
+        if (state == GLUT_DOWN):
+            mouseClicked = True
             
-            firstCurve = False
-        
-
-
-        if (state == GLUT_DOWN and len(PontosClicados) == 2):
-            return
-        if (button == GLUT_RIGHT_BUTTON):
-            return    
-
-        print("Pontos =", len(PontosClicados))
-        
-    # **********************************************************************************
-    # ********************** MODE 2 - CONTINUIDADE DE DERIVADA *************************
-    # **********************************************************************************
+            if (len(PontosClicados) == 2):
+                bloqueiaSubida = True
+            
+            if (firstCurve == True): 
+                PontosClicados.append(ConvertePonto(Ponto(x, y)))
+                PosAtualDoMouse = PontosClicados[len(PontosClicados)-1]
+                Linha.append(ConvertePonto(Ponto(x, y)))
+            else:
+                if(len(PontosClicados) == 2):
+                    PontosClicados.append(ConvertePonto(Ponto(x, y)))
+                    PosAtualDoMouse = PontosClicados[len(PontosClicados)-1]
     
-    elif(mode == 2):
-        if (arrastaCurva == True or nPontoAtual == 3):
-            print("HENRIQUINHO")
+        if (state == GLUT_UP):
+            mouseClicked = False
             
-            pontoAuxiliar = PontosClicados[2]   
-            pontoAuxiliar2 = PontosClicados[1]
-            
-            LinhaDerviada.append(pontoAuxiliar)
-            LinhaDerviada.append(pontoAuxiliar2) 
-            
-            # ************************************
-            # LinhaDerivada[0] = PontosClicados[2]
-            # LinhaDerivada[1] = PontosClicados[1]
-            # ************************************
-            
-            vetBC = LinhaDerviada[0].__sub__(LinhaDerviada[1])
-            vetBC.imprime("Dist entre LD[0] - LD[1], vetBC =")
-            
-            d = LinhaDerviada[0].__add__(vetBC)
-            d.imprime("Ponto D =")
-            
-            PontosClicados.clear()
-            PontosClicados.append(pontoAuxiliar)
-            PontosClicados.append(d)
-            
-            Linha.clear()
-            LinhaDerviada.clear()
-            Linha.append(pontoAuxiliar)
-            
-            nPontoAtual = 2
-            # aux = False
-            
-            
-        if (button == GLUT_LEFT_BUTTON):
-            if (state == GLUT_DOWN):
-                mouseClicked = True
+            if (bloqueiaSubida == False):
+                PontosClicados.append(ConvertePonto(Ponto(x, y)))
+                Linha.append(ConvertePonto(Ponto(x, y)))
+                nPontoAtual += 1
+                PosAtualDoMouse = PontosClicados[len(PontosClicados)-1]
                 
-                if (len(PontosClicados) == 2):
-                    bloqueiaSubida = True
-            
-                if (firstCurve == True): 
-                    PontosClicados.append(ConvertePonto(Ponto(x, y)))
-                    PosAtualDoMouse = PontosClicados[len(PontosClicados)-1]
-                    Linha.append(ConvertePonto(Ponto(x, y)))
-                else:
-                    if(len(PontosClicados) == 2):
-                        PontosClicados.append(ConvertePonto(Ponto(x, y)))
-                        PosAtualDoMouse = PontosClicados[len(PontosClicados)-1]
+            bloqueiaSubida = False
+    
+    if (arrastaCurva == True):
+        arrastaCurva = False
 
-            if (state == GLUT_UP):
-                mouseClicked = False
-                if (bloqueiaSubida == False):
-                    PontosClicados.append(ConvertePonto(Ponto(x, y)))
-                    Linha.append(ConvertePonto(Ponto(x, y)))
-                    nPontoAtual += 1
-                    PosAtualDoMouse = PontosClicados[len(PontosClicados)-1]
-                    
-                bloqueiaSubida = False
+    if len(PontosClicados) == 3:
+        CriaCurvas()
+        curvaCriada = True
         
-        if (arrastaCurva == True):
-            arrastaCurva = False
+        firstCurve = False
+    
+    if (state == GLUT_DOWN and len(PontosClicados) == 2):
+        return
+    if (button == GLUT_RIGHT_BUTTON):
+        return    
 
-        if len(PontosClicados) == 3:
-            CriaCurvas()
-            curvaCriada = True
-            firstCurve = False
+
+def continuidadeDerivada(button: int, state: int, x: int, y: int):
+    global PontosClicados, PosAtualDoMouse, mouseClicked, nPontoAtual, curvaCriada, arrastaCurva, bloqueiaSubida, Linha, mode, pontoAuxiliar, firstCurve, pontoAuxiliar2, aux
+    
+    curvaCriada = False
+    
+    if (arrastaCurva == True or nPontoAtual == 3):        
+        pontoAuxiliar = PontosClicados[2]   
+        pontoAuxiliar2 = PontosClicados[1]
+        
+        LinhaDerviada.append(pontoAuxiliar)
+        LinhaDerviada.append(pontoAuxiliar2) 
+                    
+        # ************************************
+        # LinhaDerivada[0] = PontosClicados[2]
+        # LinhaDerivada[1] = PontosClicados[1]
+        # ************************************
+        
+        vetBC = LinhaDerviada[0].__sub__(LinhaDerviada[1])
+        # vetBC.imprime("Dist entre LD[0] - LD[1], vetBC =")
+        
+        d = LinhaDerviada[0].__add__(vetBC)
+        # d.imprime("Ponto D =")
+        
+        PontosClicados.clear()
+        PontosClicados.append(pontoAuxiliar)
+        PontosClicados.append(d)
+        
+        Linha.clear()
+        LinhaDerviada.clear()
+        Linha.append(pontoAuxiliar)
+        
+        nPontoAtual = 2        
+        
+    if (button == GLUT_LEFT_BUTTON):
+        if (state == GLUT_DOWN):
+            mouseClicked = True
             
+            if (len(PontosClicados) == 2):
+                bloqueiaSubida = True
+        
+            if (firstCurve == True): 
+                PontosClicados.append(ConvertePonto(Ponto(x, y)))
+                PosAtualDoMouse = PontosClicados[len(PontosClicados)-1]
+                Linha.append(ConvertePonto(Ponto(x, y)))
+            else:
+                if(len(PontosClicados) == 2):
+                    PontosClicados.append(ConvertePonto(Ponto(x, y)))
+                    PosAtualDoMouse = PontosClicados[len(PontosClicados)-1]
 
-        if (state == GLUT_DOWN and len(PontosClicados) == 2):
-            return
-        if (button == GLUT_RIGHT_BUTTON):
-            return    
+        if (state == GLUT_UP):
+            mouseClicked = False
+            if (bloqueiaSubida == False):
+                PontosClicados.append(ConvertePonto(Ponto(x, y)))
+                Linha.append(ConvertePonto(Ponto(x, y)))
+                nPontoAtual += 1
+                PosAtualDoMouse = PontosClicados[len(PontosClicados)-1]
+                
+            bloqueiaSubida = False
+    
+    if (arrastaCurva == True):
+        arrastaCurva = False
 
-        print("Pontos =", len(PontosClicados))
+    if len(PontosClicados) == 3:
+        CriaCurvas()
+        curvaCriada = True
+        firstCurve = False
+        
+    if (state == GLUT_DOWN and len(PontosClicados) == 2):
+        return
+    if (button == GLUT_RIGHT_BUTTON):
+        return    
 
-    # PontoConvertido = ConvertePonto(Ponto(x, y))
-    # print(f"Mouse clicado na janela: ({x}, {y})")
-    # print(f"Mouse clicado no mundo: ({PontoConvertido.x}, {PontoConvertido.y})")
-
-    glutPostRedisplay()
 
 # **********************************************************************
 # Captura as coordenadas do mouse do mouse sobre a area de
@@ -607,8 +633,6 @@ def Motion(x: int, y: int):
         arrastaCurva = True
         PontosClicados[2] = PosAtualDoMouse
         CriaCurvas()
-    # PosAtualDoMouse.imprime("Mouse:")
-    # print('')
 
 # ***********************************************************************************
 # Programa Principal
@@ -616,7 +640,6 @@ def Motion(x: int, y: int):
 
 
 print("Programa OpenGL")
-print("Mode =", mode)
 
 glutInit(sys.argv)
 glutInitDisplayMode(GLUT_DOUBLE | GLUT_DEPTH | GLUT_RGB)

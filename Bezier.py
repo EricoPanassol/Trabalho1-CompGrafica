@@ -3,6 +3,7 @@ from Ponto import Ponto
 from OpenGL.GL import *
 from OpenGL.GLUT import *
 from OpenGL.GLU import *
+import numpy as np
 
 class Bezier:
     def __init__NEW(self, p0:Ponto, p1:Ponto, p2:Ponto):
@@ -22,6 +23,10 @@ class Bezier:
         #P = self.Coords[2]
         #P.imprime()
 
+    def getPontos(self):
+        return self.Coords
+    
+
     def Calcula(self, t):
         UmMenosT = 1-t
         P = Ponto()
@@ -30,7 +35,7 @@ class Bezier:
 
     def Traca(self):     
         t=0.0
-        DeltaT = 1.0/50
+        DeltaT = 1.0/50                                                                 
         P = Ponto
         glBegin(GL_LINE_STRIP)
         
@@ -49,5 +54,13 @@ class Bezier:
             glVertex3f(self.Coords[i].x, self.Coords[i].y, self.Coords[i].z)
         glEnd()
 
+    def TracaPoligonoDeControle(self):
+        glBegin(GL_LINE_LOOP)
+        for i in range(3):
+            glVertex3f(self.Coords[i].x, self.Coords[i].y, self.Coords[i].z)
+        glEnd()
+        
+        
+
+
            
-            
