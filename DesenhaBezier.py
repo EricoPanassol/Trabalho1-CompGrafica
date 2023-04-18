@@ -26,6 +26,7 @@ from InstanciaBZ import *
 from Bezier import *
 from ListaDeCoresRGB import *
 import numpy as np
+import math
 # ***********************************************************************************
 
 # Modelos de Objetos
@@ -44,7 +45,6 @@ Personagens = []
 Curvas = []
 
 # Variaveis de controle da curva Bezier
-Curvas = []
 PontosClicados = []
 PoligonoDeControle = None
 desenhaPoligonoControle = True
@@ -67,11 +67,6 @@ Mensagens = [
     "Clique o 1° ponto.",
 ]
 
-MouseState = [
-    "Mouse down",
-    "Mouse up"
-]
-
 angulo = 0.0
 desenha = True
 
@@ -80,6 +75,7 @@ pontoAuxiliar = Ponto()
 pontoAuxiliar2 = Ponto()
 firstCurve = True
 aux = True
+realMousePos = Ponto()
 
 # **********************************************************************
 # Imprime o texto S na posicao (x,y), com a cor 'cor'
@@ -112,17 +108,6 @@ def ImprimePonto(P: Ponto, x: int, y: int, cor: tuple):
 
 def ImprimeMensagens():
     PrintString(Mensagens[len(PontosClicados)-1], -14, 13, White)
-    
-    # if(len(PontosClicados) == 0):
-    #     PrintString("Clique no 1° ponto", -14, 13, White)
-    # elif(len(PontosClicados) == 1):
-    #     PrintString("Clique no 2° ponto", -14, 13, White)
-    # else:
-    #     PrintString("Clique no 3° ponto", -14, 13, White)
-    
-    # if nPontoAtual > 0:
-    #     PrintString("Ultimo ponto clicado: ", -14, 11, Red)
-    #     ImprimePonto(PontosClicados[nPontoAtual-1], -14, 9, Red)
 
     PrintString("Mouse pos: ", -14, 11, White)
     ImprimePonto(PosAtualDoMouse, -11, 11, White)
@@ -377,56 +362,82 @@ def ConvertePonto(P: Ponto) -> Ponto:
 # ***********************************************************************************
 
 
+# on mouse move() -> verifica se a pos do mouse está perto de qualquer vértice do pol de controle e o mouse está down
+# arrasta o vertice
+# cuidar para nao arrastar o vértica de uma outra curva enquanto estiver arrastando alguma ja
 
 
+def distance_point_to_line(point, aresta):    
+    x0 = point.x
+    y0 = point.y
+    
+    x1 = aresta[0][0]
+    y1 = aresta[0][1]
+    
+    x2 = aresta[1][0]
+    y2 = aresta[1][1]
+    
+    A = y2 - y1
+    B = x1 - x2
+    C = x2 * y1 - x1 * y2
+    
+    d = abs(A * x0 + B * y0 + C) / math.sqrt(A**2 + B**2)
+    
+    return d
 
 
+def point_on_edge(point, edge):
+    TOLERANCE = 0.1
+    
+    # calcula a distância do ponto à reta que contém a aresta
+    d0 = distance_point_to_line(point, edge)
 
+    # calcula a distância do ponto aos extremos da aresta
+    d1 = distance_point_to_line(point, [edge[0], [point.x, point.y]])
+    d2 = distance_point_to_line(point, [edge[1], [point.x, point.y]])
+
+    print("d0 =", d0)
+    print("d1 =", d1)
+    print("d2 =", d2)
+    
+    # verifica se o ponto está próximo o suficiente da aresta para considerá-lo como um clique na aresta
+    if d0 < TOLERANCE and min(d1, d2) < math.dist(edge[0], edge[1]):
+        return True
+    else:
+        return False
 
 def mouse(button: int, state: int, x: int, y: int):
-    # if(len(Curvas) > 0):
-    #     curva = Curvas[0].getPontos()
-                
-                
-    #     # cria os x e y dos pontos da curva
-    #     pontosDaCurva = []
-    #     p0 = [curva[0].x, curva[0].y]
-    #     p1 = [curva[1].x, curva[1].y]
-    #     p2 = [curva[2].x, curva[2].y]
-        
-        
-    #     # cria os pontos da curva
-    #     ponto0 = ConvertePonto(Ponto(p0[0], p0[1]))
-    #     ponto1 = ConvertePonto(Ponto(p1[0], p0[1]))
-    #     ponto2 = ConvertePonto(Ponto(p2[0], p0[1]))
-    #     print("ponto0 =", ponto0)
-                
-                
-    #     # adiciona os pontos da curva na lista
-    #     pontosDaCurva.append(ponto0)
-    #     pontosDaCurva.append(ponto1)
-    #     pontosDaCurva.append(ponto2)
-        
-        
-    #     # calcula a diff entre os pontos da curva para pegar as arestas
-    #     arestasDaCurva = []
-    #     a0 = ponto1.__sub__(ponto0)
-    #     a1 = ponto2.__sub__(ponto1)
-    #     a2 = ponto2.__sub__(ponto0)
-                
-        
-    #     # adiciona essa diff na lista
-    #     arestasDaCurva.append(a0)
-    #     arestasDaCurva.append(a1)
-    #     arestasDaCurva.append(a2)
+    global mode
     
-    
-    
-    # on mouse move() -> verifica se a pos do mouse está perto de qualquer vértice do pol de controle e o mouse está down
-    # arrasta o vertice
-    # cuidar para nao arrastar o vértica de uma outra curva enquanto estiver arrastando alguma ja
-        
+    # primeiro fazendo com a curva 1
+    if(len(Curvas) > 0):
+        curva = Curvas[0].getPontos()
+                
+        # cria os x e y dos pontos da curva
+        p0 = [curva[0].x, curva[0].y]
+        p1 = [curva[1].x, curva[1].y]
+        p2 = [curva[2].x, curva[2].y]
+        # print("p0 =", p0)
 
+        if(button == GLUT_RIGHT_BUTTON and state == GLUT_DOWN):
+            mode = 3
+            point = ConvertePonto(Ponto(x, y))
+            aresta0 = [p0, p1]   
+            aresta1 = [p1, p2]
+            aresta2 = [p0, p2]         
+            
+            # print("PONTO1 =", aresta0[0],"\nPONTO 2 =", aresta0[1])
+            
+            if(mode == 3):
+                
+                canRemove = point_on_edge(point, aresta0) or point_on_edge(point, aresta1) or point_on_edge(point, aresta2)
+                print(canRemove)
+                
+                if(canRemove):
+                    Curvas.clear()
+                    print("Curva removida")
+            mode = 0
+            
     if (mode == 0):
        semContinuidade(button, state, x, y)
 
@@ -634,6 +645,7 @@ def Motion(x: int, y: int):
         PontosClicados[2] = PosAtualDoMouse
         CriaCurvas()
 
+
 # ***********************************************************************************
 # Programa Principal
 # ***********************************************************************************
@@ -688,7 +700,6 @@ glutKeyboardFunc(keyboard)
 glutSpecialFunc(arrow_keys)
 glutMouseFunc(mouse)
 glutMotionFunc(Motion)
-
 try:
     glutMainLoop()
 except SystemExit:
