@@ -21,10 +21,12 @@
 from OpenGL.GL import *
 from OpenGL.GLUT import *
 from OpenGL.GLU import *
+import numpy as np
 from Poligonos import *
 from InstanciaBZ import *
 from Bezier import *
 from ListaDeCoresRGB import *
+import math 
 # ***********************************************************************************
 
 # Modelos de Objetos
@@ -50,6 +52,7 @@ desenhaPoligonoControle = True
 
 Linha = []
 LinhaDerviada = []
+Poligonos = []
 
 PosAtualDoMouse = Ponto()
 nPontoAtual = 0
@@ -355,6 +358,35 @@ def clear():
     PontosClicados.clear()
     LinhaDerviada.clear()
     Linha.clear()
+    
+def dist(x1, y1, x2, y2, x3, y3): # x3,y3 is the point
+    px = x2-x1
+    py = y2-y1
+
+    norm = px*px + py*py
+
+    u =  ((x3 - x1) * px + (y3 - y1) * py) / float(norm)
+
+    if u > 1:
+        u = 1
+    elif u < 0:
+        u = 0
+
+    x = x1 + u * px
+    y = y1 + u * py
+
+    dx = x - x3
+    dy = y - y3
+
+    # Note: If the actual distance does not matter,
+    # if you only want to compare what this function
+    # returns to other results of this function, you
+    # can just return the squared distance instead
+    # (i.e. remove the sqrt) to gain a little performance
+
+    dist = (dx*dx + dy*dy)**.5
+
+    return dist
 
 # **********************************************************************
 # Converte as coordenadas do ponto P de coordenadas de tela para
@@ -396,6 +428,7 @@ def mouse(button: int, state: int, x: int, y: int):
     global pontoAuxiliar
     global pontoAuxiliar2
     global aux
+    global pontosPoli
     curvaCriada = False
     
     # mode = 2
@@ -410,22 +443,24 @@ def mouse(button: int, state: int, x: int, y: int):
 
         if (button == GLUT_RIGHT_BUTTON):
             if (state == GLUT_DOWN):
-                # print("Mouse down")
-                mouseClicked = True
-
-            if ((state == GLUT_UP and len(PontosClicados) != 3) or (state == GLUT_DOWN and len(PontosClicados) == 2)):
-                # print("Mouse up")
-
-                if (not (state == GLUT_UP and bloqueiaSubida == True)):
-                    PontosClicados.append(ConvertePonto(Ponto(x, y)))
-                    PosAtualDoMouse = PontosClicados[len(PontosClicados)-1]
-
-                if (state == GLUT_UP):
-                    mouseClicked = False
-                    bloqueiaSubida = False
-                else:
-                    bloqueiaSubida = True
-
+                PontoAtual = ConvertePonto(Ponto(x, y))
+                count = 0
+                for curva in Curvas:
+                    pontosPoli = curva.GetPontos()
+                    print(PontoAtual.GetX(), PontoAtual.GetY())
+                    a = dist(pontosPoli[0].GetX(), pontosPoli[0].GetY(), pontosPoli[1].GetX(), pontosPoli[1].GetY(), PontoAtual.GetX(), PontoAtual.GetY())
+                    b = dist(pontosPoli[0].GetX(), pontosPoli[0].GetY(), pontosPoli[2].GetX(), pontosPoli[2].GetY(), PontoAtual.GetX(), PontoAtual.GetY())
+                    c = dist(pontosPoli[1].GetX(), pontosPoli[1].GetY(), pontosPoli[2].GetX(), pontosPoli[2].GetY(), PontoAtual.GetX(), PontoAtual.GetY())
+                    print(a, b, c)
+                    if(a < 0.2 and a > -0.2):
+                        Curvas.pop(count)
+                    elif(b < 0.2 and b > -0.2):
+                        Curvas.pop(count)
+                    elif(c < 0.2 and c > -0.2):
+                        Curvas.pop(count)
+                    count = count + 1
+                    
+    
         if (button == GLUT_LEFT_BUTTON):
             if (state == GLUT_DOWN):
                 # print("Mouse down")
@@ -470,27 +505,25 @@ def mouse(button: int, state: int, x: int, y: int):
             PontosClicados.clear()
     
         if(button == GLUT_RIGHT_BUTTON):
-            if(state == GLUT_DOWN):
-                print("Mouse down")
-                mouseClicked = True;
+            if (state == GLUT_DOWN):
+                PontoAtual = ConvertePonto(Ponto(x, y))
+                count = 0
+                for curva in Curvas:
+                    pontosPoli = curva.GetPontos()
+                    print(PontoAtual.GetX(), PontoAtual.GetY())
+                    a = dist(pontosPoli[0].GetX(), pontosPoli[0].GetY(), pontosPoli[1].GetX(), pontosPoli[1].GetY(), PontoAtual.GetX(), PontoAtual.GetY())
+                    b = dist(pontosPoli[0].GetX(), pontosPoli[0].GetY(), pontosPoli[2].GetX(), pontosPoli[2].GetY(), PontoAtual.GetX(), PontoAtual.GetY())
+                    c = dist(pontosPoli[1].GetX(), pontosPoli[1].GetY(), pontosPoli[2].GetX(), pontosPoli[2].GetY(), PontoAtual.GetX(), PontoAtual.GetY())
+                    print(a, b, c)
+                    if(a < 0.2 and a > -0.2):
+                        Curvas.pop(count)
+                    elif(b < 0.2 and b > -0.2):
+                        Curvas.pop(count)
+                    elif(c < 0.2 and c > -0.2):
+                        Curvas.pop(count)
+                    count = count + 1
+             
                 
-            if((state == GLUT_UP and len(PontosClicados) != 3) or (state == GLUT_DOWN and len(PontosClicados) == 2)):
-                print("Mouse up")
-
-                if(not(state == GLUT_UP and bloqueiaSubida == True)):
-                    PontosClicados.append(ConvertePonto(Ponto(x, y)))
-                    PosAtualDoMouse = PontosClicados[len(PontosClicados)-1];
-                
-                if(state == GLUT_UP):
-                    mouseClicked = False
-                    bloqueiaSubida = False
-                else:
-                    bloqueiaSubida = True
-                # nPontoAtual += 1
-                # print(f"Pontos clicados: {nPontoAtual}")
-                
-                # PosAtualDoMouse = PontosClicados[nPontoAtual-1]
-
         if(button == GLUT_LEFT_BUTTON):
             if(state == GLUT_DOWN):
                 print("Mouse down")
@@ -542,6 +575,25 @@ def mouse(button: int, state: int, x: int, y: int):
     # **********************************************************************************
     
     elif(mode == 2):
+        if (button == GLUT_RIGHT_BUTTON):
+            if (state == GLUT_DOWN):
+                PontoAtual = ConvertePonto(Ponto(x, y))
+                count = 0
+                for curva in Curvas:
+                    pontosPoli = curva.GetPontos()
+                    print(PontoAtual.GetX(), PontoAtual.GetY())
+                    a = dist(pontosPoli[0].GetX(), pontosPoli[0].GetY(), pontosPoli[1].GetX(), pontosPoli[1].GetY(), PontoAtual.GetX(), PontoAtual.GetY())
+                    b = dist(pontosPoli[0].GetX(), pontosPoli[0].GetY(), pontosPoli[2].GetX(), pontosPoli[2].GetY(), PontoAtual.GetX(), PontoAtual.GetY())
+                    c = dist(pontosPoli[1].GetX(), pontosPoli[1].GetY(), pontosPoli[2].GetX(), pontosPoli[2].GetY(), PontoAtual.GetX(), PontoAtual.GetY())
+                    print(a, b, c)
+                    if(a < 0.2 and a > -0.2):
+                        Curvas.pop(count)
+                    elif(b < 0.2 and b > -0.2):
+                        Curvas.pop(count)
+                    elif(c < 0.2 and c > -0.2):
+                        Curvas.pop(count)
+                    count = count + 1
+             
         if (arrastaCurva == True or nPontoAtual == 3):
             
             pontoAuxiliar = PontosClicados[2]   

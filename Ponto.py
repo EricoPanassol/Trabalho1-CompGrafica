@@ -66,6 +66,12 @@ class Ponto:
         zr =  self.y*math.sin(anguloRad) + self.z*math.cos(anguloRad)
         self.y = yr
         self.z = zr
+        
+    def GetX(self):
+        return self.x
+
+    def GetY(self):
+        return self.y
 
 # ********************************************************************** */
 #                                                                        */
@@ -104,4 +110,3 @@ def HaInterseccao(k: Ponto, l: Ponto, m: Ponto, n: Ponto) -> bool:
     if not ret: return False
 
     return s>=0.0 and s <=1.0 and t>=0.0 and t<=1.0
-

@@ -48,6 +48,9 @@ class Bezier:
         for i in range(3):
             glVertex3f(self.Coords[i].x, self.Coords[i].y, self.Coords[i].z)
         glEnd()
+    
+    def GetPontos(self):
+        return self.Coords
 
            
             
