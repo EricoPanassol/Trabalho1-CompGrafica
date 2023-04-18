@@ -308,6 +308,7 @@ def arrow_keys(a_keys: int, x: int, y: int):
 
     if a_keys == GLUT_KEY_DOWN:       # Se pressionar DOWN
         desenhaPoligonoControle = not desenhaPoligonoControle
+        print(desenhaPoligonoControle)
         
     if a_keys == GLUT_KEY_LEFT:       # Se pressionar LEFT
         if(mode <= 0):
@@ -319,16 +320,14 @@ def arrow_keys(a_keys: int, x: int, y: int):
             clearScreen()
         
     if a_keys == GLUT_KEY_RIGHT:      # Se pressionar RIGHT
-        if(mode >= 2):
-            mode = 2
+        if(mode >= 3):
+            mode = 3
             clearScreen()
         else:
             firstCurve = True
             mode += 1
             clearScreen()
             
-    print("mode =", mode)
-
     glutPostRedisplay()
 
 
@@ -361,10 +360,6 @@ def ConvertePonto(P: Ponto) -> Ponto:
 # Captura o clique do botao esquerdo do mouse sobre a area de desenho
 # ***********************************************************************************
 
-
-# on mouse move() -> verifica se a pos do mouse está perto de qualquer vértice do pol de controle e o mouse está down
-# arrasta o vertice
-# cuidar para nao arrastar o vértica de uma outra curva enquanto estiver arrastando alguma ja
 
 
 def distance_point_to_line(point, aresta):    
@@ -409,35 +404,32 @@ def point_on_edge(point, edge):
 def mouse(button: int, state: int, x: int, y: int):
     global mode
     
-    # primeiro fazendo com a curva 1
-    if(len(Curvas) > 0):
-        curva = Curvas[0].getPontos()
-                
-        # cria os x e y dos pontos da curva
-        p0 = [curva[0].x, curva[0].y]
-        p1 = [curva[1].x, curva[1].y]
-        p2 = [curva[2].x, curva[2].y]
-        # print("p0 =", p0)
+    
+    # on mouse move() -> verifica se a pos do mouse está perto de qualquer vértice do pol de controle e o mouse está down
+    # arrasta o vertice
+    # cuidar para nao arrastar o vértica de uma outra curva enquanto estiver arrastando alguma ja
+    # cuidar para nao remover o vertice de uma curva enquanto estiver arrastando alguma ja
+    
+    if(len(Curvas) > 0 and mode == 3):
+        curvas = Curvas.copy()
+        for curva in curvas:
+            pontos = curva.getPontos()
+            p0 = [pontos[0].x, pontos[0].y]
+            p1 = [pontos[1].x, pontos[1].y]
+            p2 = [pontos[2].x, pontos[2].y]
 
-        if(button == GLUT_RIGHT_BUTTON and state == GLUT_DOWN):
-            mode = 3
-            point = ConvertePonto(Ponto(x, y))
-            aresta0 = [p0, p1]   
-            aresta1 = [p1, p2]
-            aresta2 = [p0, p2]         
-            
-            # print("PONTO1 =", aresta0[0],"\nPONTO 2 =", aresta0[1])
-            
-            if(mode == 3):
-                
+            if button == GLUT_RIGHT_BUTTON and state == GLUT_DOWN:
+                point = ConvertePonto(Ponto(x, y))
+                aresta0 = [p0, p1]   
+                aresta1 = [p1, p2]
+                aresta2 = [p0, p2]         
+
                 canRemove = point_on_edge(point, aresta0) or point_on_edge(point, aresta1) or point_on_edge(point, aresta2)
-                print(canRemove)
                 
-                if(canRemove):
-                    Curvas.clear()
+                if canRemove and desenhaPoligonoControle:
+                    Curvas.remove(curva)
                     print("Curva removida")
-            mode = 0
-            
+        
     if (mode == 0):
        semContinuidade(button, state, x, y)
 
