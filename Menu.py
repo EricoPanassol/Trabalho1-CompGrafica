@@ -75,11 +75,11 @@ class Menu:
                 
             elif(option_index == 5):
                 option["is_active"] = not option["is_active"]
+                option['callback']
             
             elif(option_index == 6):
                 option["is_active"] = True
-                limpa_tela = option["callback"]
-                limpa_tela()
+                option["callback"]
                 option["is_active"] = False
 
     def reset(self):

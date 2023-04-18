@@ -22,6 +22,9 @@ class Bezier:
         #P = self.Coords[2]
         #P.imprime()
 
+    def getPontos(self):
+        return self.Coords
+
     def Calcula(self, t):
         UmMenosT = 1-t
         P = Ponto()
