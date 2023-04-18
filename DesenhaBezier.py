@@ -251,9 +251,17 @@ def removeCurve(button: int, state: int, x: int, y: int):
                     print("Curva removida")
 
 # ***********************************************************************************
-
+    
 def point_on_edge(point, edge):
     TOLERANCE = 0.1
+    
+    # delimita os pontos para a aresta
+    min_x = min(edge[0][0], edge[1][0])
+    max_x = max(edge[0][0], edge[1][0])
+    min_y = min(edge[0][1], edge[1][1])
+    max_y = max(edge[0][1], edge[1][1])
+    if point.x < min_x or point.x > max_x or point.y < min_y or point.y > max_y:
+        return False
     
     # calcula a distância do ponto à reta que contém a aresta
     d0 = distance_point_to_line(point, edge)
@@ -262,15 +270,12 @@ def point_on_edge(point, edge):
     d1 = distance_point_to_line(point, [edge[0], [point.x, point.y]])
     d2 = distance_point_to_line(point, [edge[1], [point.x, point.y]])
 
-    # print("d0 =", d0)
-    # print("d1 =", d1)
-    # print("d2 =", d2)
-    
     # verifica se o ponto está próximo o suficiente da aresta para considerá-lo como um clique na aresta
     if d0 < TOLERANCE and min(d1, d2) < math.dist(edge[0], edge[1]):
         return True
     else:
         return False
+   
     
 # ***********************************************************************************
 
@@ -432,107 +437,140 @@ def mouse(button: int, state: int, x: int, y: int):
         print("Click no canvas")
         print(f"len PontosClicados: {len(PontosClicados)}")
         
-        #******************************************
-        #             SEM CONTINUIDADE          
-        #******************************************
+        # SEM CONTINUIDADE          
         if(menu.active_option == 0):
-            if(state == GLUT_DOWN):
-                if(len(PontosClicados) == 0):
-                    print("len == 0")
-                    PontosClicados.append(PontoClicado)
-                    PosAtualDoMouse = PontosClicados[len(PontosClicados)-1]
-                    print(f"len PontosClicados: {len(PontosClicados)}")
-                    
-            if(state == GLUT_UP):
-                PontosClicados.append(PontoClicado)
-                PosAtualDoMouse = PontosClicados[len(PontosClicados)-1]
+            semContinuidade(button, state, x, y)
 
-            if(len(PontosClicados) == 3):
-                print("We got a curve, ain't we?")
-                CriaCurvas()
-                ClearPontosClicados()
-
-        #******************************************
-        #         CONTINUIDADE DE POSICAO          
-        #******************************************
+        # CONTINUIDADE DE POSICAO          
         if(menu.active_option == 1):
-            if(state == GLUT_DOWN):
-                if(len(PontosClicados) == 0):
-                    print("len == 0")
-                    PontosClicados.append(PontoClicado)
-                    PosAtualDoMouse = PontosClicados[len(PontosClicados)-1]
-                    print(f"len PontosClicados: {len(PontosClicados)}")
-                    
-            if(state == GLUT_UP):
-                PontosClicados.append(PontoClicado)
-                PosAtualDoMouse = PontosClicados[len(PontosClicados)-1]
-
-            if(len(PontosClicados) == 3):
-                print("We got a curve, ain't we?")
-                checkpoint = PontosClicados[2] #hehe
-                CriaCurvas()
-                ClearPontosClicados()
-                PontosClicados.append(checkpoint)
-                PosAtualDoMouse = PontosClicados[len(PontosClicados)-1]
-
-        #******************************************
-        #*        CONTINUIDADE DE DERIVADA          
-        #******************************************
+            continuidadeDePosicao(button, state, x, y)
+            
+        # CONTINUIDADE DE DERIVADA          
         if(menu.active_option == 2):
-            if(state == GLUT_DOWN):
-                if(len(PontosClicados) == 0):
-                    print("len == 0")
-                    PontosClicados.append(PontoClicado)
-                    PosAtualDoMouse = PontosClicados[len(PontosClicados)-1]
-                    print(f"len PontosClicados: {len(PontosClicados)}")
-                    
-            if(state == GLUT_UP):
-                PontosClicados.append(PontoClicado)
-                PosAtualDoMouse = PontosClicados[len(PontosClicados)-1]
+            continuidadeDeDerivada(button, state, x, y)
 
-            if(len(PontosClicados) == 3):
-                print("We got a curve, ain't we?")
-                checkpoint_b = PontosClicados[1]
-                checkpoint_c = PontosClicados[2]
-                projected_point = checkpoint_c.__add__(checkpoint_c.__sub__(checkpoint_b))
-                CriaCurvas()
-                ClearPontosClicados()
-                PontosClicados.append(checkpoint_c)
-                PosAtualDoMouse = PontosClicados[len(PontosClicados)-1]
-                PontosClicados.append(projected_point)
-                PosAtualDoMouse = PontosClicados[len(PontosClicados)-1]
-
+        # EDITAR VERTICES
         if(menu.active_option == 3):
             # Editar Vertices
             pass
-
+        
+        # REMOVE CURVA
         if(menu.active_option == 4):
-            if(len(Curvas) > 0 and traca_pol_controle):
-                    curvas = Curvas.copy()
-                    for curva in curvas:
-                        pontos = curva.getPontos()
-                        p0 = [pontos[0].x, pontos[0].y]
-                        p1 = [pontos[1].x, pontos[1].y]
-                        p2 = [pontos[2].x, pontos[2].y]
-
-                        if button == GLUT_LEFT_BUTTON and state == GLUT_DOWN:
-                            point = ConvertePonto(Ponto(x, y))
-                            aresta0 = [p0, p1]   
-                            aresta1 = [p1, p2]
-                            aresta2 = [p0, p2]         
-
-                            canRemove = point_on_edge(point, aresta0) or point_on_edge(point, aresta1) or point_on_edge(point, aresta2)
-
-                            if canRemove:
-                                Curvas.remove(curva)
-                                print("Curva removida")           
+            removeCurve(button, state, x, y)
 
     glutPostRedisplay()
 
+def semContinuidade(button: int, state: int, x: int, y: int):
+    global PontoClicado
+    global PontosClicados
+    global PosAtualDoMouse
+    global VerdadeiraPosMouse
+    global mouseClicked
+    global Linha
+    
+    if(state == GLUT_DOWN):
+        if(len(PontosClicados) == 0):
+            print("len == 0")
+            PontosClicados.append(PontoClicado)
+            PosAtualDoMouse = PontosClicados[len(PontosClicados)-1]
+            print(f"len PontosClicados: {len(PontosClicados)}")
+            
+    if(state == GLUT_UP):
+        PontosClicados.append(PontoClicado)
+        PosAtualDoMouse = PontosClicados[len(PontosClicados)-1]
+
+    if(len(PontosClicados) == 3):
+        print("We got a curve, ain't we?")
+        CriaCurvas()
+        ClearPontosClicados()
+
+
+def continuidadeDePosicao(button: int, state: int, x: int, y: int):
+    global PontoClicado
+    global PontosClicados
+    global PosAtualDoMouse
+    global VerdadeiraPosMouse
+    global mouseClicked
+    global Linha
+    
+    if(state == GLUT_DOWN):
+        if(len(PontosClicados) == 0):
+            print("len == 0")
+            PontosClicados.append(PontoClicado)
+            PosAtualDoMouse = PontosClicados[len(PontosClicados)-1]
+            print(f"len PontosClicados: {len(PontosClicados)}")
+            
+    if(state == GLUT_UP):
+        PontosClicados.append(PontoClicado)
+        PosAtualDoMouse = PontosClicados[len(PontosClicados)-1]
+
+    if(len(PontosClicados) == 3):
+        print("We got a curve, ain't we?")
+        checkpoint = PontosClicados[2] #hehe
+        CriaCurvas()
+        ClearPontosClicados()
+        PontosClicados.append(checkpoint)
+        PosAtualDoMouse = PontosClicados[len(PontosClicados)-1]
+
+
+def continuidadeDeDerivada(button: int, state: int, x: int, y: int):
+    if(state == GLUT_DOWN):
+        if(len(PontosClicados) == 0):
+            print("len == 0")
+            PontosClicados.append(PontoClicado)
+            PosAtualDoMouse = PontosClicados[len(PontosClicados)-1]
+            print(f"len PontosClicados: {len(PontosClicados)}")
+            
+    if(state == GLUT_UP):
+        PontosClicados.append(PontoClicado)
+        PosAtualDoMouse = PontosClicados[len(PontosClicados)-1]
+
+    if(len(PontosClicados) == 3):
+        print("We got a curve, ain't we?")
+        checkpoint_b = PontosClicados[1]
+        checkpoint_c = PontosClicados[2]
+        projected_point = checkpoint_c.__add__(checkpoint_c.__sub__(checkpoint_b))
+        CriaCurvas()
+        ClearPontosClicados()
+        PontosClicados.append(checkpoint_c)
+        PosAtualDoMouse = PontosClicados[len(PontosClicados)-1]
+        PontosClicados.append(projected_point)
+        PosAtualDoMouse = PontosClicados[len(PontosClicados)-1]
+
+
+def removeCurve(button: int, state: int, x: int, y: int):
+    global PontoClicado
+    global PontosClicados
+    global PosAtualDoMouse
+    global VerdadeiraPosMouse
+    global mouseClicked
+    global Linha
+    
+    if(len(Curvas) > 0 and traca_pol_controle):
+        curvas = Curvas.copy()
+        for curva in curvas:
+            pontos = curva.getPontos()
+            p0 = [pontos[0].x, pontos[0].y]
+            p1 = [pontos[1].x, pontos[1].y]
+            p2 = [pontos[2].x, pontos[2].y]
+
+            if button == GLUT_LEFT_BUTTON and state == GLUT_DOWN:
+                point = ConvertePonto(Ponto(x, y))
+                aresta0 = [p0, p1]   
+                aresta1 = [p1, p2]
+                aresta2 = [p0, p2]         
+
+                canRemove = point_on_edge(point, aresta0) or point_on_edge(point, aresta1) or point_on_edge(point, aresta2)
+
+                if canRemove:
+                    Curvas.remove(curva)
+                    print("Curva removida") 
+
+
 def setup_menu_options():
         menu.add_option("Sem Continuidade", True, ClearPontosClicados)
-        menu.add_option("Cont de Posição", False, ClearPontosClicados)
-        menu.add_option("Cont de Derivada", False, ClearPontosClicados)
+        menu.add_option("Cont. de Posição", False, ClearPontosClicados)
+        menu.add_option("Cont. de Derivada", False, ClearPontosClicados)
         menu.add_option("Editar Vertices", False, ClearPontosClicados)
         menu.add_option("Remover Curva", False, ClearPontosClicados)
         menu.add_option("Poligono de Controle", True, SwitchPoligonoControle)
