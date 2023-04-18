@@ -379,10 +379,10 @@ def distance_point_to_line(point, aresta):
     B = x1 - x2
     C = x2 * y1 - x1 * y2
     
-    # if(A == 0 and B == 0):
-    #     return 0
-    print("math.sqrt(A**2 + B**2) =", math.sqrt(A**2 + B**2))
-    d = abs(A * x0 + B * y0 + C) / math.sqrt(A**2 + B**2)
+    if(math.sqrt(A**2 + B**2) == 0):
+        return 0
+    else:
+        d = abs(A * x0 + B * y0 + C) / math.sqrt(A**2 + B**2)
     
     return d
 
