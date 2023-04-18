@@ -312,7 +312,7 @@ def arrow_keys(a_keys: int, x: int, y: int):
         
     if a_keys == GLUT_KEY_LEFT:       # Se pressionar LEFT
         if(mode <= 0):
-            mode = 0
+            mode = 3
             clearScreen()
         else:
             firstCurve = True
@@ -321,7 +321,7 @@ def arrow_keys(a_keys: int, x: int, y: int):
         
     if a_keys == GLUT_KEY_RIGHT:      # Se pressionar RIGHT
         if(mode >= 3):
-            mode = 3
+            mode = 0
             clearScreen()
         else:
             firstCurve = True
@@ -379,6 +379,9 @@ def distance_point_to_line(point, aresta):
     B = x1 - x2
     C = x2 * y1 - x1 * y2
     
+    # if(A == 0 and B == 0):
+    #     return 0
+    print("math.sqrt(A**2 + B**2) =", math.sqrt(A**2 + B**2))
     d = abs(A * x0 + B * y0 + C) / math.sqrt(A**2 + B**2)
     
     return d
@@ -453,7 +456,7 @@ def removeCurve(button: int, state: int, x: int, y: int):
                 
                 if canRemove and desenhaPoligonoControle:
                     Curvas.remove(curva)
-                    print("Curva removida")
+                    # print("Curva removida")
                     
                     
 def semContinuidade(button: int, state: int, x: int, y: int):
