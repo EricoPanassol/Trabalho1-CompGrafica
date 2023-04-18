@@ -332,9 +332,12 @@ def arrow_keys(a_keys: int, x: int, y: int):
 
 
 def clearScreen():
+    global nPontoAtual
     PontosClicados.clear()
     LinhaDerviada.clear()
     Linha.clear()
+    nPontoAtual = 0
+    
 
 # **********************************************************************
 # Converte as coordenadas do ponto P de coordenadas de tela para
@@ -391,9 +394,9 @@ def point_on_edge(point, edge):
     d1 = distance_point_to_line(point, [edge[0], [point.x, point.y]])
     d2 = distance_point_to_line(point, [edge[1], [point.x, point.y]])
 
-    print("d0 =", d0)
-    print("d1 =", d1)
-    print("d2 =", d2)
+    # print("d0 =", d0)
+    # print("d1 =", d1)
+    # print("d2 =", d2)
     
     # verifica se o ponto está próximo o suficiente da aresta para considerá-lo como um clique na aresta
     if d0 < TOLERANCE and min(d1, d2) < math.dist(edge[0], edge[1]):
@@ -410,25 +413,7 @@ def mouse(button: int, state: int, x: int, y: int):
     # cuidar para nao arrastar o vértica de uma outra curva enquanto estiver arrastando alguma ja
     # cuidar para nao remover o vertice de uma curva enquanto estiver arrastando alguma ja
     
-    if(len(Curvas) > 0 and mode == 3):
-        curvas = Curvas.copy()
-        for curva in curvas:
-            pontos = curva.getPontos()
-            p0 = [pontos[0].x, pontos[0].y]
-            p1 = [pontos[1].x, pontos[1].y]
-            p2 = [pontos[2].x, pontos[2].y]
-
-            if button == GLUT_RIGHT_BUTTON and state == GLUT_DOWN:
-                point = ConvertePonto(Ponto(x, y))
-                aresta0 = [p0, p1]   
-                aresta1 = [p1, p2]
-                aresta2 = [p0, p2]         
-
-                canRemove = point_on_edge(point, aresta0) or point_on_edge(point, aresta1) or point_on_edge(point, aresta2)
-                
-                if canRemove and desenhaPoligonoControle:
-                    Curvas.remove(curva)
-                    print("Curva removida")
+    removeCurve(button, state, x, y)
         
     if (mode == 0):
        semContinuidade(button, state, x, y)
@@ -449,7 +434,28 @@ def mouse(button: int, state: int, x: int, y: int):
 # 
 # **********************************************************************
 
+def removeCurve(button: int, state: int, x: int, y: int):
+    if(len(Curvas) > 0 and mode == 3):
+        curvas = Curvas.copy()
+        for curva in curvas:
+            pontos = curva.getPontos()
+            p0 = [pontos[0].x, pontos[0].y]
+            p1 = [pontos[1].x, pontos[1].y]
+            p2 = [pontos[2].x, pontos[2].y]
 
+            if button == GLUT_RIGHT_BUTTON and state == GLUT_DOWN:
+                point = ConvertePonto(Ponto(x, y))
+                aresta0 = [p0, p1]   
+                aresta1 = [p1, p2]
+                aresta2 = [p0, p2]         
+
+                canRemove = point_on_edge(point, aresta0) or point_on_edge(point, aresta1) or point_on_edge(point, aresta2)
+                
+                if canRemove and desenhaPoligonoControle:
+                    Curvas.remove(curva)
+                    print("Curva removida")
+                    
+                    
 def semContinuidade(button: int, state: int, x: int, y: int):
     global PontosClicados, PosAtualDoMouse, mouseClicked, nPontoAtual, curvaCriada, arrastaCurva, bloqueiaSubida, Linha, mode, pontoAuxiliar, firstCurve, pontoAuxiliar2, aux
     
@@ -492,7 +498,7 @@ def semContinuidade(button: int, state: int, x: int, y: int):
 
 
 def continuidadePosicao(button: int, state: int, x: int, y: int):
-    global PontosClicados, PosAtualDoMouse, mouseClicked, nPontoAtual, curvaCriada, arrastaCurva, bloqueiaSubida, Linha, mode, pontoAuxiliar, firstCurve, pontoAuxiliar2, aux
+    global PontosClicados, PosAtualDoMouse, mouseClicked, nPontoAtual, curvaCriada, arrastaCurva, bloqueiaSubida, Linha, mode, pontoAuxiliar, firstCurve, aux
     
     curvaCriada = False
     
