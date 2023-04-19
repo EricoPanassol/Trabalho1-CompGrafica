@@ -56,6 +56,8 @@ PontoClicado = Ponto()
 nPontoAtual = 0
 mouseClicked = False
 traca_pol_controle = True
+moving_vertex = None
+editing = False
 
 Linha = []
 
@@ -103,8 +105,6 @@ def ImprimePonto(P: Ponto, x: int, y: int, cor: tuple):
 #  Funcao chamada na 'display'
 # **********************************************************************
 def ImprimeMensagens():    
-    PrintString(Mensagens[len(PontosClicados)], -15, -14, White)
-
     # if nPontoAtual > 0:
     #     PrintString("Ultimo ponto clicado: ", -14, 11, Red)
     #     ImprimePonto(PontosClicados[nPontoAtual-1], -14, 9, Red)
@@ -115,6 +115,13 @@ def ImprimeMensagens():
     #PrintString("Down", 13, -14, White) if mouseClicked else PrintString("Up", 13, -14, White)
 
     PrintString(f"{len(Curvas)} Curvas", 7, -14, White)
+
+    if(menu.active_option < 3):
+        PrintString(Mensagens[len(PontosClicados)], -15, -14, White)
+    elif(menu.active_option == 3):
+        PrintString("Editando vértices", -14, -14, White)
+    elif(menu.active_option == 4):
+        PrintString("Removendo curvas", -14, -14, White)
     
 
 # **********************************************************************
@@ -164,9 +171,10 @@ def CarregaModelos():
     Mastro.LePontosDeArquivo("Mastro.txt")
 
 # **************************************************************
-def CriaCurvas():
+def CriaCurvas(tipo):
     global Curvas
     C = Bezier(PontosClicados[0], PontosClicados[1], PontosClicados[2])
+    C.Tipo = tipo
     Curvas.append(C)
 
 # ***********************************************************************************
@@ -251,9 +259,16 @@ def removeCurve(button: int, state: int, x: int, y: int):
                     print("Curva removida")
 
 # ***********************************************************************************
-
 def point_on_edge(point, edge):
     TOLERANCE = 0.1
+    
+    # verifica se o ponto está dentro do retângulo delimitado pelos pontos da aresta
+    min_x = min(edge[0][0], edge[1][0])
+    max_x = max(edge[0][0], edge[1][0])
+    min_y = min(edge[0][1], edge[1][1])
+    max_y = max(edge[0][1], edge[1][1])
+    if point.x < min_x or point.x > max_x or point.y < min_y or point.y > max_y:
+        return False
     
     # calcula a distância do ponto à reta que contém a aresta
     d0 = distance_point_to_line(point, edge)
@@ -262,10 +277,6 @@ def point_on_edge(point, edge):
     d1 = distance_point_to_line(point, [edge[0], [point.x, point.y]])
     d2 = distance_point_to_line(point, [edge[1], [point.x, point.y]])
 
-    # print("d0 =", d0)
-    # print("d1 =", d1)
-    # print("d2 =", d2)
-    
     # verifica se o ponto está próximo o suficiente da aresta para considerá-lo como um clique na aresta
     if d0 < TOLERANCE and min(d1, d2) < math.dist(edge[0], edge[1]):
         return True
@@ -294,6 +305,24 @@ def distance_point_to_line(point, aresta):
     d = abs(A * x0 + B * y0 + C) / math.sqrt(A**2 + B**2)
     return d
 
+#  retorna o vertex clicado
+def whichClickedVertex(vertex, posMouseClicked):
+    v0 = mouse_on_vertex(vertex[0], posMouseClicked)
+    v1 = mouse_on_vertex(vertex[1], posMouseClicked)
+    
+    if(v0):
+        return vertex[0]
+    elif(v1):
+        return vertex[1]
+    else:
+        return vertex[2]
+
+# retorna se o mouse clicou em um vertex
+def mouse_on_vertex(vertex, posMouseClicked, tolerance=0.2):
+    if(vertex.x - tolerance < posMouseClicked.x < vertex.x + tolerance):
+        if(vertex.y - tolerance < posMouseClicked.y < vertex.y + tolerance):
+            return True
+
 # ***********************************************************************************
 
 def display():
@@ -314,7 +343,6 @@ def display():
     #DesenhaMenu()
     DesenhaEixos()
     menu.desenha()
-    
     glLineWidth(2)
     defineCor(White)
     desenha_rubberband()
@@ -326,6 +354,13 @@ def display():
         defineCor(IndianRed)
         temp_curve.TracaPoligonoDeControle()
         #defineCor(IndianRed)
+
+    # if(moving_vertex):
+    #     vertice_selecionada = get_vertice_curva()
+        
+    #     vertice_selecionada.x = VerdadeiraPosMouse.x
+    #     vertice_selecionada.y = VerdadeiraPosMouse.y
+
         
     # if(len(Linha) > 1):
     #     DesenhaLinha(Linha[0], Linha[1])
@@ -398,6 +433,14 @@ def ConvertePonto(P: Ponto) -> Ponto:
     
     return Ponto(ox, oy, oz)
 
+def get_vertice_curva():
+    for curva in Curvas:
+            for coord in curva.Coords:
+                if(mouse_on_vertex(coord, VerdadeiraPosMouse)):
+                    return coord
+    
+    return None
+
 # ***********************************************************************************
 # Captura o clique do botao esquerdo do mouse sobre a area de desenho
 # ***********************************************************************************
@@ -449,7 +492,7 @@ def mouse(button: int, state: int, x: int, y: int):
 
             if(len(PontosClicados) == 3):
                 print("We got a curve, ain't we?")
-                CriaCurvas()
+                CriaCurvas("sem_continuidade")
                 ClearPontosClicados()
 
         #******************************************
@@ -470,7 +513,7 @@ def mouse(button: int, state: int, x: int, y: int):
             if(len(PontosClicados) == 3):
                 print("We got a curve, ain't we?")
                 checkpoint = PontosClicados[2] #hehe
-                CriaCurvas()
+                CriaCurvas("posicao")
                 ClearPontosClicados()
                 PontosClicados.append(checkpoint)
                 PosAtualDoMouse = PontosClicados[len(PontosClicados)-1]
@@ -494,8 +537,8 @@ def mouse(button: int, state: int, x: int, y: int):
                 print("We got a curve, ain't we?")
                 checkpoint_b = PontosClicados[1]
                 checkpoint_c = PontosClicados[2]
-                projected_point = checkpoint_c.__add__(checkpoint_c.__sub__(checkpoint_b))
-                CriaCurvas()
+                projected_point = projeta_ponto(checkpoint_b, checkpoint_c)
+                CriaCurvas("derivada")
                 ClearPontosClicados()
                 PontosClicados.append(checkpoint_c)
                 PosAtualDoMouse = PontosClicados[len(PontosClicados)-1]
@@ -503,8 +546,19 @@ def mouse(button: int, state: int, x: int, y: int):
                 PosAtualDoMouse = PontosClicados[len(PontosClicados)-1]
 
         if(menu.active_option == 3):
-            # Editar Vertices
-            pass
+            global moving_vertex
+            global editing
+            if(traca_pol_controle):
+                if(state == GLUT_DOWN):
+                    aux_vertex = get_vertice_curva()
+                    if(aux_vertex != None):
+                        moving_vertex = aux_vertex
+                        editing = True
+                
+                if(state == GLUT_UP):
+                    print("SOLTOU O MOUSE")
+                    editing = False
+                    moving_vertex = None
 
         if(menu.active_option == 4):
             if(len(Curvas) > 0 and traca_pol_controle):
@@ -535,7 +589,7 @@ def setup_menu_options():
         menu.add_option("Cont de Derivada", False, ClearPontosClicados)
         menu.add_option("Editar Vertices", False, ClearPontosClicados)
         menu.add_option("Remover Curva", False, ClearPontosClicados)
-        menu.add_option("Poligono de Controle", True, SwitchPoligonoControle)
+        menu.add_option("Pol de Controle", True, SwitchPoligonoControle)
         menu.add_option("Limpa Tela", False, LimpaTela)
 
 def ClearPontosClicados():
@@ -553,6 +607,9 @@ def SwitchPoligonoControle():
     traca_pol_controle = not traca_pol_controle
     print(f"Poligono de Controle: {traca_pol_controle}")
 
+def projeta_ponto(checkpoint_b, checkpoint_c):
+    return checkpoint_c.__add__(checkpoint_c.__sub__(checkpoint_b))
+
 # **********************************************************************
 # Captura as coordenadas do mouse do mouse sobre a area de
 # desenho, enquanto um dos botoes esta sendo pressionado
@@ -564,6 +621,12 @@ def Motion(x: int, y: int):
     PosAtualDoMouse = ConvertePonto(P)
     # PosAtualDoMouse.imprime("Mouse:")
     # print('')
+    if(menu.active_option == 3):
+        if(editing):
+            moving_vertex.x = PosAtualDoMouse.x
+            moving_vertex.y = PosAtualDoMouse.y
+            
+            
 
 def PassiveMotion(x: int, y: int):
     global VerdadeiraPosMouse

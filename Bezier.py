@@ -9,6 +9,7 @@ class Bezier:
         print ("Construtora da Bezier")
         self.ComprimentoTotalDaCurva = 0.0
         self.Coords = [p0, p1, p2]
+        self.Tipo = ""
         #P = self.Coords[0]
         #P.imprime()
 
