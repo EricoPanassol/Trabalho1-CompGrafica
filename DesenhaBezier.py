@@ -1,5 +1,4 @@
-# ***********************************************************************************
-#   ExibePoligonos.py
+# ExibePoligonos.py
 #       Autor: Márcio Sarroglia Pinho
 #       pinho@pucrs.br
 #   Este programa cria um conjunto de INSTANCIAS
@@ -26,7 +25,7 @@ from Poligonos import *
 from InstanciaBZ import *
 from Bezier import *
 from ListaDeCoresRGB import *
-import math 
+import math
 # ***********************************************************************************
 
 # Modelos de Objetos
@@ -59,6 +58,9 @@ nPontoAtual = 0
 mouseClicked = False
 arrastaCurva = False
 bloqueiaSubida = False
+removerPoli = False
+movePonto = True
+movendoPonto = False
 
 # **********************************************************************
 # Lista de mensagens
@@ -114,14 +116,14 @@ def ImprimePonto(P: Ponto, x: int, y: int, cor: tuple):
 
 def ImprimeMensagens():
     PrintString(Mensagens[len(PontosClicados)-1], -14, 13, White)
-    
+   
     # if(len(PontosClicados) == 0):
     #     PrintString("Clique no 1° ponto", -14, 13, White)
     # elif(len(PontosClicados) == 1):
     #     PrintString("Clique no 2° ponto", -14, 13, White)
     # else:
     #     PrintString("Clique no 3° ponto", -14, 13, White)
-    
+   
     # if nPontoAtual > 0:
     #     PrintString("Ultimo ponto clicado: ", -14, 11, Red)
     #     ImprimePonto(PontosClicados[nPontoAtual-1], -14, 9, Red)
@@ -131,10 +133,10 @@ def ImprimeMensagens():
 
     PrintString("Mouse: ", -14, 9, White)
     PrintString("Down", -12, 9,White) if mouseClicked else PrintString("Up", -12, 9, White)
-    
+   
     PrintString("N° Curvas: ", -14, 7, White)
     PrintString(str(len(Curvas)), -11, 7, White)
-    
+   
     PrintString("Mode: ", -14, 5, White)
     PrintString(str(mode), -12, 5, White)
 
@@ -228,9 +230,9 @@ def DesenhaLinha(P1: Ponto, P2: Ponto):
 
 def DesenhaCurvas():
     global desenhaPoligonoControle
-    
+   
     # desenhaPoligonoControle = True
-    
+   
     for I in Curvas:
         defineCor(Aquamarine)
         I.Traca()
@@ -324,13 +326,13 @@ def keyboard(*args):
 
 def arrow_keys(a_keys: int, x: int, y: int):
     global desenhaPoligonoControle, mode, primeiraExecucaoModo1
-    
+   
     if a_keys == GLUT_KEY_UP:         # Se pressionar UP
         glutFullScreen()
 
     if a_keys == GLUT_KEY_DOWN:       # Se pressionar DOWN
         desenhaPoligonoControle = not desenhaPoligonoControle
-        
+       
     if a_keys == GLUT_KEY_LEFT:       # Se pressionar LEFT
         if(mode <= 0):
             mode = 0
@@ -339,7 +341,7 @@ def arrow_keys(a_keys: int, x: int, y: int):
             primeiraExecucaoModo1 = True
             mode -= 1
             clear()
-        
+       
     if a_keys == GLUT_KEY_RIGHT:      # Se pressionar RIGHT
         if(mode >= 2):
             mode = 2
@@ -348,7 +350,7 @@ def arrow_keys(a_keys: int, x: int, y: int):
             primeiraExecucaoModo1 = True
             mode += 1
             clear()
-            
+           
     print("mode =", mode)
 
     glutPostRedisplay()
@@ -358,7 +360,7 @@ def clear():
     PontosClicados.clear()
     LinhaDerviada.clear()
     Linha.clear()
-    
+   
 def dist(x1, y1, x2, y2, x3, y3): # x3,y3 is the point
     px = x2-x1
     py = y2-y1
@@ -377,12 +379,6 @@ def dist(x1, y1, x2, y2, x3, y3): # x3,y3 is the point
 
     dx = x - x3
     dy = y - y3
-
-    # Note: If the actual distance does not matter,
-    # if you only want to compare what this function
-    # returns to other results of this function, you
-    # can just return the squared distance instead
-    # (i.e. remove the sqrt) to gain a little performance
 
     dist = (dx*dx + dy*dy)**.5
 
@@ -429,38 +425,57 @@ def mouse(button: int, state: int, x: int, y: int):
     global pontoAuxiliar2
     global aux
     global pontosPoli
+    global removerPoli
+    global movePonto
+    global pontoMovendo
+    global movendoPonto
     curvaCriada = False
-    
+    movendoPonto = False
     # mode = 2
 
     # **********************************************************************************
     # ********************** MODE 0 - SEM CONTINUIDADE  ********************************
     # **********************************************************************************
-    
+   
     if (mode == 0):
         if (arrastaCurva == True or len(PontosClicados) == 3):
             PontosClicados.clear()
 
         if (button == GLUT_RIGHT_BUTTON):
             if (state == GLUT_DOWN):
-                PontoAtual = ConvertePonto(Ponto(x, y))
-                count = 0
-                for curva in Curvas:
-                    pontosPoli = curva.GetPontos()
-                    print(PontoAtual.GetX(), PontoAtual.GetY())
-                    a = dist(pontosPoli[0].GetX(), pontosPoli[0].GetY(), pontosPoli[1].GetX(), pontosPoli[1].GetY(), PontoAtual.GetX(), PontoAtual.GetY())
-                    b = dist(pontosPoli[0].GetX(), pontosPoli[0].GetY(), pontosPoli[2].GetX(), pontosPoli[2].GetY(), PontoAtual.GetX(), PontoAtual.GetY())
-                    c = dist(pontosPoli[1].GetX(), pontosPoli[1].GetY(), pontosPoli[2].GetX(), pontosPoli[2].GetY(), PontoAtual.GetX(), PontoAtual.GetY())
-                    print(a, b, c)
-                    if(a < 0.2 and a > -0.2):
-                        Curvas.pop(count)
-                    elif(b < 0.2 and b > -0.2):
-                        Curvas.pop(count)
-                    elif(c < 0.2 and c > -0.2):
-                        Curvas.pop(count)
-                    count = count + 1
-                    
-    
+                if(removerPoli == True):
+                    PontoAtual = ConvertePonto(Ponto(x, y))
+                    count = 0
+                    for curva in Curvas:
+                        pontosPoli = curva.GetPontos()
+                        print(PontoAtual.GetX(), PontoAtual.GetY())
+                        a = dist(pontosPoli[0].GetX(), pontosPoli[0].GetY(), pontosPoli[1].GetX(), pontosPoli[1].GetY(), PontoAtual.GetX(), PontoAtual.GetY())
+                        b = dist(pontosPoli[0].GetX(), pontosPoli[0].GetY(), pontosPoli[2].GetX(), pontosPoli[2].GetY(), PontoAtual.GetX(), PontoAtual.GetY())
+                        c = dist(pontosPoli[1].GetX(), pontosPoli[1].GetY(), pontosPoli[2].GetX(), pontosPoli[2].GetY(), PontoAtual.GetX(), PontoAtual.GetY())
+                        print(a, b, c)
+                        if((a < 0.2 and a > -0.2) or (b < 0.2 and b > -0.2) or (c < 0.2 and c > -0.2)):
+                            Curvas.pop(count)
+                            primeiraExecucaoModo1 = True
+                        count = count + 1
+                elif(movePonto == True):
+                    PontoAtual = ConvertePonto(Ponto(x, y))
+                    count = 0
+                    for curva in Curvas:
+                        pontosPoli = curva.GetPontos()
+                        print(PontoAtual.GetX(), PontoAtual.GetY())
+                        a = math.dist([pontosPoli[0].GetX(), pontosPoli[0].GetY()], [PontoAtual.GetX(), PontoAtual.GetY()])
+                        b = math.dist([pontosPoli[1].GetX(), pontosPoli[1].GetY()], [PontoAtual.GetX(), PontoAtual.GetY()])
+                        c = math.dist([pontosPoli[2].GetX(), pontosPoli[2].GetY()], [PontoAtual.GetX(), PontoAtual.GetY()])
+                        if(a > -0.4 and a < 0.4):
+                            pontoMovendo = pontosPoli[0]
+                            movendoPonto = True
+                        if(b > -0.4 and b < 0.4):
+                            pontoMovendo = pontosPoli[1]
+                            movendoPonto = True
+                        if(c > -0.4 and c < 0.4):
+                            pontoMovendo = pontosPoli[2]
+                            movendoPonto = True
+
         if (button == GLUT_LEFT_BUTTON):
             if (state == GLUT_DOWN):
                 # print("Mouse down")
@@ -500,30 +515,45 @@ def mouse(button: int, state: int, x: int, y: int):
     # **********************************************************************************
 
     elif (mode == 1):
-        if(arrastaCurva == True or len(PontosClicados) == 3): 
-            pontoAuxiliar = PontosClicados[2] 
+        if(arrastaCurva == True or len(PontosClicados) == 3):
+            pontoAuxiliar = PontosClicados[2]
             PontosClicados.clear()
-    
+   
         if(button == GLUT_RIGHT_BUTTON):
             if (state == GLUT_DOWN):
-                PontoAtual = ConvertePonto(Ponto(x, y))
-                count = 0
-                for curva in Curvas:
-                    pontosPoli = curva.GetPontos()
-                    print(PontoAtual.GetX(), PontoAtual.GetY())
-                    a = dist(pontosPoli[0].GetX(), pontosPoli[0].GetY(), pontosPoli[1].GetX(), pontosPoli[1].GetY(), PontoAtual.GetX(), PontoAtual.GetY())
-                    b = dist(pontosPoli[0].GetX(), pontosPoli[0].GetY(), pontosPoli[2].GetX(), pontosPoli[2].GetY(), PontoAtual.GetX(), PontoAtual.GetY())
-                    c = dist(pontosPoli[1].GetX(), pontosPoli[1].GetY(), pontosPoli[2].GetX(), pontosPoli[2].GetY(), PontoAtual.GetX(), PontoAtual.GetY())
-                    print(a, b, c)
-                    if(a < 0.2 and a > -0.2):
-                        Curvas.pop(count)
-                    elif(b < 0.2 and b > -0.2):
-                        Curvas.pop(count)
-                    elif(c < 0.2 and c > -0.2):
-                        Curvas.pop(count)
-                    count = count + 1
-             
-                
+                if(removerPoli == True):
+                    PontoAtual = ConvertePonto(Ponto(x, y))
+                    count = 0
+                    for curva in Curvas:
+                        pontosPoli = curva.GetPontos()
+                        print(PontoAtual.GetX(), PontoAtual.GetY())
+                        a = dist(pontosPoli[0].GetX(), pontosPoli[0].GetY(), pontosPoli[1].GetX(), pontosPoli[1].GetY(), PontoAtual.GetX(), PontoAtual.GetY())
+                        b = dist(pontosPoli[0].GetX(), pontosPoli[0].GetY(), pontosPoli[2].GetX(), pontosPoli[2].GetY(), PontoAtual.GetX(), PontoAtual.GetY())
+                        c = dist(pontosPoli[1].GetX(), pontosPoli[1].GetY(), pontosPoli[2].GetX(), pontosPoli[2].GetY(), PontoAtual.GetX(), PontoAtual.GetY())
+                        print(a, b, c)
+                        if((a < 0.2 and a > -0.2) or (b < 0.2 and b > -0.2) or (c < 0.2 and c > -0.2)):
+                            Curvas.pop(count)
+                            primeiraExecucaoModo1 = True
+                        count = count + 1
+                elif(movePonto == True):
+                    PontoAtual = ConvertePonto(Ponto(x, y))
+                    count = 0
+                    for curva in Curvas:
+                        pontosPoli = curva.GetPontos()
+                        print(PontoAtual.GetX(), PontoAtual.GetY())
+                        a = math.dist([pontosPoli[0].GetX(), pontosPoli[0].GetY()], [PontoAtual.GetX(), PontoAtual.GetY()])
+                        b = math.dist([pontosPoli[1].GetX(), pontosPoli[1].GetY()], [PontoAtual.GetX(), PontoAtual.GetY()])
+                        c = math.dist([pontosPoli[2].GetX(), pontosPoli[2].GetY()], [PontoAtual.GetX(), PontoAtual.GetY()])
+                        if(a > -0.4 and a < 0.4):
+                            pontoMovendo = pontosPoli[0]
+                            movendoPonto = True
+                        if(b > -0.4 and b < 0.4):
+                            pontoMovendo = pontosPoli[1]
+                            movendoPonto = True
+                        if(c > -0.4 and c < 0.4):
+                            pontoMovendo = pontosPoli[2]
+                            movendoPonto = True
+               
         if(button == GLUT_LEFT_BUTTON):
             if(state == GLUT_DOWN):
                 print("Mouse down")
@@ -536,103 +566,119 @@ def mouse(button: int, state: int, x: int, y: int):
                     PontosClicados.append(ConvertePonto(Ponto(x, y)))
                     Linha.append(ConvertePonto(Ponto(x,y)))
                     PosAtualDoMouse = PontosClicados[len(PontosClicados)-1]
-                
-                
-                
-                
+               
+               
+               
+               
             if(state == GLUT_UP):
                 print("Mouse up")
                 mouseClicked = False;
-                    
+                   
                 if(bloqueiaSubida == False):
                     PontosClicados.append(ConvertePonto(Ponto(x, y)))
                     Linha.append(ConvertePonto(Ponto(x,y)))
                     PosAtualDoMouse = PontosClicados[len(PontosClicados)-1];
-                    
+                   
                 bloqueiaSubida = False
                 # nPontoAtual += 1
                 # print(f"Pontos clicados: {nPontoAtual}")
-                
+               
                 # PosAtualDoMouse = PontosClicados[nPontoAtual-1]
-        
+       
         if(arrastaCurva == True):
             arrastaCurva = False
-        
-        
+       
+       
         if len(PontosClicados) == 3:
             CriaCurvas()
             curvaCriada = True;
             Linha.clear()
-            
-            
+           
+           
         if(state == GLUT_DOWN and len(PontosClicados) == 2):
             return
         if(button == GLUT_RIGHT_BUTTON):
             return
-        
+       
     # **********************************************************************************
     # ********************** MODE 2 - CONTINUIDADE DE DERIVADA *************************
     # **********************************************************************************
-    
+   
     elif(mode == 2):
         if (button == GLUT_RIGHT_BUTTON):
             if (state == GLUT_DOWN):
-                PontoAtual = ConvertePonto(Ponto(x, y))
-                count = 0
-                for curva in Curvas:
-                    pontosPoli = curva.GetPontos()
-                    print(PontoAtual.GetX(), PontoAtual.GetY())
-                    a = dist(pontosPoli[0].GetX(), pontosPoli[0].GetY(), pontosPoli[1].GetX(), pontosPoli[1].GetY(), PontoAtual.GetX(), PontoAtual.GetY())
-                    b = dist(pontosPoli[0].GetX(), pontosPoli[0].GetY(), pontosPoli[2].GetX(), pontosPoli[2].GetY(), PontoAtual.GetX(), PontoAtual.GetY())
-                    c = dist(pontosPoli[1].GetX(), pontosPoli[1].GetY(), pontosPoli[2].GetX(), pontosPoli[2].GetY(), PontoAtual.GetX(), PontoAtual.GetY())
-                    print(a, b, c)
-                    if(a < 0.2 and a > -0.2):
-                        Curvas.pop(count)
-                    elif(b < 0.2 and b > -0.2):
-                        Curvas.pop(count)
-                    elif(c < 0.2 and c > -0.2):
-                        Curvas.pop(count)
-                    count = count + 1
-             
+                if(removerPoli == True):
+                    PontoAtual = ConvertePonto(Ponto(x, y))
+                    count = 0
+                    for curva in Curvas:
+                        pontosPoli = curva.GetPontos()
+                        print(PontoAtual.GetX(), PontoAtual.GetY())
+                        a = dist(pontosPoli[0].GetX(), pontosPoli[0].GetY(), pontosPoli[1].GetX(), pontosPoli[1].GetY(), PontoAtual.GetX(), PontoAtual.GetY())
+                        b = dist(pontosPoli[0].GetX(), pontosPoli[0].GetY(), pontosPoli[2].GetX(), pontosPoli[2].GetY(), PontoAtual.GetX(), PontoAtual.GetY())
+                        c = dist(pontosPoli[1].GetX(), pontosPoli[1].GetY(), pontosPoli[2].GetX(), pontosPoli[2].GetY(), PontoAtual.GetX(), PontoAtual.GetY())
+                        print(a, b, c)
+                        if((a < 0.2 and a > -0.2) or (b < 0.2 and b > -0.2) or (c < 0.2 and c > -0.2)):
+                            Curvas.pop(count)
+                            primeiraExecucaoModo1 = True
+                elif(movePonto == True):
+                    PontoAtual = ConvertePonto(Ponto(x, y))
+                    count = 0
+                    for curva in Curvas:
+                        pontosPoli = curva.GetPontos()
+                        print(PontoAtual.GetX(), PontoAtual.GetY())
+                        a = math.dist([pontosPoli[0].GetX(), pontosPoli[0].GetY()], [PontoAtual.GetX(), PontoAtual.GetY()])
+                        b = math.dist([pontosPoli[1].GetX(), pontosPoli[1].GetY()], [PontoAtual.GetX(), PontoAtual.GetY()])
+                        c = math.dist([pontosPoli[2].GetX(), pontosPoli[2].GetY()], [PontoAtual.GetX(), PontoAtual.GetY()])
+                        if(a > -0.4 and a < 0.4):
+                            pontoMovendo = pontosPoli[0]
+                            movendoPonto = True
+                        if(b > -0.4 and b < 0.4):
+                            pontoMovendo = pontosPoli[1]
+                            movendoPonto = True
+                        if(c > -0.4 and c < 0.4):
+                            pontoMovendo = pontosPoli[2]
+                            movendoPonto = True
+
+
         if (arrastaCurva == True or nPontoAtual == 3):
-            
-            pontoAuxiliar = PontosClicados[2]   
+           
+            pontoAuxiliar = PontosClicados[2]  
             pontoAuxiliar2 = PontosClicados[1]
-            
+           
             LinhaDerviada.append(pontoAuxiliar)
-            LinhaDerviada.append(pontoAuxiliar2) 
-            
+            LinhaDerviada.append(pontoAuxiliar2)
+           
             # ************************************
             # LinhaDerivada[0] = PontosClicados[2]
             # LinhaDerivada[1] = PontosClicados[1]
             # ************************************
-            
+           
             vetBC = LinhaDerviada[0].__sub__(LinhaDerviada[1])
             vetBC.imprime("Dist entre LD[0] - LD[1], vetBC =")
-            
+           
             d = LinhaDerviada[0].__add__(vetBC)
             d.imprime("Ponto D =")
-            
+           
             PontosClicados.clear()
             PontosClicados.append(pontoAuxiliar)
             PontosClicados.append(d)
-            
+           
             Linha.clear()
             LinhaDerviada.clear()
             Linha.append(pontoAuxiliar)
-            
+           
             nPontoAtual = 2
             # aux = False
-            
-            
+           
+           
         if (button == GLUT_LEFT_BUTTON):
             if (state == GLUT_DOWN):
                 mouseClicked = True
-                
+               
                 if (len(PontosClicados) == 2):
                     bloqueiaSubida = True
-            
-                if (primeiraExecucaoModo1 == True): 
+           
+                if (primeiraExecucaoModo1 == True):
                     PontosClicados.append(ConvertePonto(Ponto(x, y)))
                     PosAtualDoMouse = PontosClicados[len(PontosClicados)-1]
                     Linha.append(ConvertePonto(Ponto(x, y)))
@@ -648,9 +694,9 @@ def mouse(button: int, state: int, x: int, y: int):
                     Linha.append(ConvertePonto(Ponto(x, y)))
                     nPontoAtual += 1
                     PosAtualDoMouse = PontosClicados[len(PontosClicados)-1]
-                    
+                   
                 bloqueiaSubida = False
-        
+       
         if (arrastaCurva == True):
             arrastaCurva = False
 
@@ -658,12 +704,12 @@ def mouse(button: int, state: int, x: int, y: int):
             CriaCurvas()
             curvaCriada = True
             primeiraExecucaoModo1 = False
-            
+           
 
         if (state == GLUT_DOWN and len(PontosClicados) == 2):
             return
         if (button == GLUT_RIGHT_BUTTON):
-            return    
+            return   
 
         print("Pontos =", len(PontosClicados))
 
@@ -682,14 +728,19 @@ def mouse(button: int, state: int, x: int, y: int):
 def Motion(x: int, y: int):
     global PosAtualDoMouse
     global arrastaCurva
+    global pontoMovendo
 
     P = Ponto(x, y)
     PosAtualDoMouse = ConvertePonto(P)
 
-    if (len(PontosClicados) == 3 and curvaCriada == True):
-        arrastaCurva = True
-        PontosClicados[2] = PosAtualDoMouse
-        CriaCurvas()
+    if(movendoPonto == True):
+        pontoMovendo.set(PosAtualDoMouse.GetX(), PosAtualDoMouse.GetY())
+        print("motion")
+    else:
+        if (len(PontosClicados) == 3 and curvaCriada == True):
+            arrastaCurva = True
+            PontosClicados[2] = PosAtualDoMouse
+            CriaCurvas()
     # PosAtualDoMouse.imprime("Mouse:")
     # print('')
 

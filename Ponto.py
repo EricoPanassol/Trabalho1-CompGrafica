@@ -28,7 +28,6 @@ class Ponto:
         self.x = x
         self.y = y
         self.z = z
-    
 # Definicao de operadores
 # https://www.programiz.com/python-programming/operator-overloading
     def __add__(self, other):
