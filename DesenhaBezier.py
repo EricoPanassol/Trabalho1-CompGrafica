@@ -320,7 +320,7 @@ def whichClickedVertex(vertex, posMouseClicked):
         return vertex[2]
 
 # retorna se o mouse clicou em um vertex
-def mouse_on_vertex(vertex, posMouseClicked, tolerance=0.2):
+def mouse_on_vertex(vertex, posMouseClicked, tolerance=0.5):
     if(vertex.x - tolerance < posMouseClicked.x < vertex.x + tolerance):
         if(vertex.y - tolerance < posMouseClicked.y < vertex.y + tolerance):
             return True
@@ -639,10 +639,10 @@ def Motion(x: int, y: int):
                 ponto_reprojetado = projeta_ponto(ponto_b, ponto_c)
                 moving_vertex["curva"].ponto_projetado.x = ponto_reprojetado.x
                 moving_vertex["curva"].ponto_projetado.y = ponto_reprojetado.y
-                
-                ponto_reprojetado_para_tras = projeta_ponto(ponto_b, ponto_a)
-                moving_vertex["curva"].derivadaDe.x = ponto_reprojetado_para_tras.x
-                moving_vertex["curva"].derivadaDe.y = ponto_reprojetado_para_tras.y
+                if(moving_vertex["curva"].derivadaDe != None):
+                    ponto_reprojetado_para_tras = projeta_ponto(ponto_b, ponto_a)
+                    moving_vertex["curva"].derivadaDe.x = ponto_reprojetado_para_tras.x
+                    moving_vertex["curva"].derivadaDe.y = ponto_reprojetado_para_tras.y
             
             
 def PassiveMotion(x: int, y: int):
