@@ -171,11 +171,12 @@ def CarregaModelos():
     Mastro.LePontosDeArquivo("Mastro.txt")
 
 # **************************************************************
-def CriaCurvas(tipo, ponto_projetado = None):
+def CriaCurvas(tipo, ponto_projetado = None, derivadaDe = None):
     global Curvas
     C = Bezier(PontosClicados[0], PontosClicados[1], PontosClicados[2])
     C.Tipo = tipo
     C.ponto_projetado = ponto_projetado
+    C.derivadaDe = derivadaDe
     Curvas.append(C)
 
 # ***********************************************************************************
@@ -540,7 +541,10 @@ def mouse(button: int, state: int, x: int, y: int):
                 checkpoint_b = PontosClicados[1]
                 checkpoint_c = PontosClicados[2]
                 projected_point = projeta_ponto(checkpoint_b, checkpoint_c)
-                CriaCurvas("derivada", projected_point)
+                if(len(Curvas) > 0):
+                    CriaCurvas("derivada", projected_point, Curvas[-1].Coords[1])
+                else:
+                    CriaCurvas("derivada", projected_point, None)
                 ClearPontosClicados()
                 PontosClicados.append(checkpoint_c)
                 PosAtualDoMouse = PontosClicados[len(PontosClicados)-1]
@@ -554,6 +558,7 @@ def mouse(button: int, state: int, x: int, y: int):
                 if(state == GLUT_DOWN):
                     aux_vertex = get_vertice_curva()
                     if(aux_vertex != None):
+                        print("aux_vertex =", aux_vertex)
                         moving_vertex = aux_vertex
                         editing = True
                 
@@ -621,19 +626,23 @@ def Motion(x: int, y: int):
     
     P = Ponto(x, y)
     PosAtualDoMouse = ConvertePonto(P)
-    # PosAtualDoMouse.imprime("Mouse:")
-    # print('')
     if(menu.active_option == 3):
         if(editing and (PosAtualDoMouse.y < 13.8 and PosAtualDoMouse.y > -13)):
             moving_vertex["ponto"].x = PosAtualDoMouse.x
             moving_vertex["ponto"].y = PosAtualDoMouse.y
 
             if(moving_vertex["curva"].Tipo == "derivada"):
+                ponto_a = moving_vertex["curva"].Coords[0]
                 ponto_b = moving_vertex["curva"].Coords[1]
                 ponto_c = moving_vertex["curva"].Coords[2]
+                
                 ponto_reprojetado = projeta_ponto(ponto_b, ponto_c)
                 moving_vertex["curva"].ponto_projetado.x = ponto_reprojetado.x
                 moving_vertex["curva"].ponto_projetado.y = ponto_reprojetado.y
+                
+                ponto_reprojetado_para_tras = projeta_ponto(ponto_b, ponto_a)
+                moving_vertex["curva"].derivadaDe.x = ponto_reprojetado_para_tras.x
+                moving_vertex["curva"].derivadaDe.y = ponto_reprojetado_para_tras.y
             
             
 def PassiveMotion(x: int, y: int):
