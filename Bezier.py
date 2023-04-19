@@ -10,6 +10,7 @@ class Bezier:
         self.ComprimentoTotalDaCurva = 0.0
         self.Coords = [p0, p1, p2]
         self.Tipo = ""
+        self.ponto_projetado = None
         #P = self.Coords[0]
         #P.imprime()
 

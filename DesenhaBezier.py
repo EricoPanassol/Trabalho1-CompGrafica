@@ -171,10 +171,11 @@ def CarregaModelos():
     Mastro.LePontosDeArquivo("Mastro.txt")
 
 # **************************************************************
-def CriaCurvas(tipo):
+def CriaCurvas(tipo, ponto_projetado = None):
     global Curvas
     C = Bezier(PontosClicados[0], PontosClicados[1], PontosClicados[2])
     C.Tipo = tipo
+    C.ponto_projetado = ponto_projetado
     Curvas.append(C)
 
 # ***********************************************************************************
@@ -437,7 +438,8 @@ def get_vertice_curva():
     for curva in Curvas:
             for coord in curva.Coords:
                 if(mouse_on_vertex(coord, VerdadeiraPosMouse)):
-                    return coord
+                    return {"curva": curva,
+                            "ponto": coord}
     
     return None
 
@@ -538,7 +540,7 @@ def mouse(button: int, state: int, x: int, y: int):
                 checkpoint_b = PontosClicados[1]
                 checkpoint_c = PontosClicados[2]
                 projected_point = projeta_ponto(checkpoint_b, checkpoint_c)
-                CriaCurvas("derivada")
+                CriaCurvas("derivada", projected_point)
                 ClearPontosClicados()
                 PontosClicados.append(checkpoint_c)
                 PosAtualDoMouse = PontosClicados[len(PontosClicados)-1]
@@ -622,12 +624,18 @@ def Motion(x: int, y: int):
     # PosAtualDoMouse.imprime("Mouse:")
     # print('')
     if(menu.active_option == 3):
-        if(editing):
-            moving_vertex.x = PosAtualDoMouse.x
-            moving_vertex.y = PosAtualDoMouse.y
-            
-            
+        if(editing and (PosAtualDoMouse.y < 13.8 and PosAtualDoMouse.y > -13)):
+            moving_vertex["ponto"].x = PosAtualDoMouse.x
+            moving_vertex["ponto"].y = PosAtualDoMouse.y
 
+            if(moving_vertex["curva"].Tipo == "derivada"):
+                ponto_b = moving_vertex["curva"].Coords[1]
+                ponto_c = moving_vertex["curva"].Coords[2]
+                ponto_reprojetado = projeta_ponto(ponto_b, ponto_c)
+                moving_vertex["curva"].ponto_projetado.x = ponto_reprojetado.x
+                moving_vertex["curva"].ponto_projetado.y = ponto_reprojetado.y
+            
+            
 def PassiveMotion(x: int, y: int):
     global VerdadeiraPosMouse
 
