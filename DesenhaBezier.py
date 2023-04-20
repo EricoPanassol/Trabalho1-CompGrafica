@@ -264,7 +264,7 @@ def removeCurve(button: int, state: int, x: int, y: int):
                 
                 if canRemove and traca_pol_controle:
                     Curvas.remove(curva)
-                    print("Curva removida")
+                    # print("Curva removida")
 
 # ***********************************************************************************
 def point_on_edge(point, edge):
@@ -422,6 +422,8 @@ def arrow_keys(a_keys: int, x: int, y: int):
         pass
     
     if a_keys == GLUT_KEY_END:
+        for curva in Curvas:
+            print(curva.idCurva)
         done_drawing()
 
     glutPostRedisplay()
@@ -471,12 +473,12 @@ def mouse(button: int, state: int, x: int, y: int):
 
     PontoClicado = ConvertePonto(Ponto(x,y))
 
-    print(f"PontoClicado.x : {PontoClicado.x}")
+    # print(f"PontoClicado.x : {PontoClicado.x}")
 
     if(button == GLUT_LEFT_BUTTON and state == GLUT_DOWN):
         mouseClicked = True
         if(VerdadeiraPosMouse.y > 14):
-            print('called')
+            # print('called')
             last_active_option = str(menu.active_option)
             menu.get_option_click(PontoClicado, state)
             new_active_option = str(menu.active_option)
@@ -490,27 +492,20 @@ def mouse(button: int, state: int, x: int, y: int):
     clicked_inside_canvas = PontoClicado.y < 14 and PontoClicado.y >= -13
 
     if(clicked_inside_canvas):
-        
-        print("Click no canvas")
-        print(f"len PontosClicados: {len(PontosClicados)}")
         isDrawing = True
-        #******************************************
-        #             SEM CONTINUIDADE          
-        #******************************************
+        
+        # sem continuidade
         if(menu.active_option == 0):
             if(state == GLUT_DOWN):
                 if(len(PontosClicados) == 0):
-                    print("len == 0")
                     PontosClicados.append(PontoClicado)
                     PosAtualDoMouse = PontosClicados[len(PontosClicados)-1]
-                    print(f"len PontosClicados: {len(PontosClicados)}")
                     
             if(state == GLUT_UP):
                 PontosClicados.append(PontoClicado)
                 PosAtualDoMouse = PontosClicados[len(PontosClicados)-1]
 
             if(len(PontosClicados) == 3):
-                print("We got a curve, ain't we?")
                 CriaCurvas("sem_continuidade")
                 ClearPontosClicados()
                 
@@ -520,24 +515,19 @@ def mouse(button: int, state: int, x: int, y: int):
 
             lastState = "sem_continuidade"
 
-        #******************************************
-        #         CONTINUIDADE DE POSICAO          
-        #******************************************
+        # com continuidade de posição
         if(menu.active_option == 1):
             if(state == GLUT_DOWN):
                 if(len(PontosClicados) == 0):
-                    print("len == 0")
                     PontosClicados.append(PontoClicado)
                     PosAtualDoMouse = PontosClicados[len(PontosClicados)-1]
-                    print(f"len PontosClicados: {len(PontosClicados)}")
                     
             if(state == GLUT_UP):
                 PontosClicados.append(PontoClicado)
                 PosAtualDoMouse = PontosClicados[len(PontosClicados)-1]
 
             if(len(PontosClicados) == 3):
-                print("We got a curve, ain't we?")
-                checkpoint = PontosClicados[2] #hehe
+                checkpoint = PontosClicados[2] 
                 CriaCurvas("posicao")
                 ClearPontosClicados()
                 PontosClicados.append(checkpoint)
@@ -550,23 +540,17 @@ def mouse(button: int, state: int, x: int, y: int):
             lastState = "posicao"
 
 
-        #******************************************
-        #*        CONTINUIDADE DE DERIVADA          
-        #******************************************
-        
+        # com continuidade de derivada/tangente
         if(menu.active_option == 2):
             if(state == GLUT_DOWN):
                 if(len(PontosClicados) == 0):
-                    print("len == 0")
                     PontosClicados.append(PontoClicado)
                     PosAtualDoMouse = PontosClicados[len(PontosClicados)-1]
-                    print(f"len PontosClicados: {len(PontosClicados)}")     
             if(state == GLUT_UP):
                 PontosClicados.append(PontoClicado)
                 PosAtualDoMouse = PontosClicados[len(PontosClicados)-1]
 
             if(len(PontosClicados) == 3):
-                print("We got a curve, ain't we?")
                 checkpoint_b = PontosClicados[1]
                 checkpoint_c = PontosClicados[2]
                 projected_point = projeta_ponto(checkpoint_b, checkpoint_c)
@@ -588,43 +572,68 @@ def mouse(button: int, state: int, x: int, y: int):
 
 
         if(menu.active_option == 3):
-            global moving_vertex
-            global editing
-            if(traca_pol_controle):
-                if(state == GLUT_DOWN):
-                    aux_vertex = get_vertice_curva()
-                    if(aux_vertex != None):
-                        print("aux_vertex =", aux_vertex)
-                        moving_vertex = aux_vertex
-                        editing = True
-                
-                if(state == GLUT_UP):
-                    print("SOLTOU O MOUSE")
-                    editing = False
-                    moving_vertex = None
+            editaCurva(button, state, x, y)
 
         if(menu.active_option == 4):
-            if(len(Curvas) > 0 and traca_pol_controle):
-                    curvas = Curvas.copy()
-                    for curva in curvas:
-                        pontos = curva.getPontos()
-                        p0 = [pontos[0].x, pontos[0].y]
-                        p1 = [pontos[1].x, pontos[1].y]
-                        p2 = [pontos[2].x, pontos[2].y]
-
-                        if button == GLUT_LEFT_BUTTON and state == GLUT_DOWN:
-                            point = ConvertePonto(Ponto(x, y))
-                            aresta0 = [p0, p1]   
-                            aresta1 = [p1, p2]
-                            aresta2 = [p0, p2]         
-
-                            canRemove = point_on_edge(point, aresta0) or point_on_edge(point, aresta1) or point_on_edge(point, aresta2)
-
-                            if canRemove:
-                                Curvas.remove(curva)
-                                print("Curva removida")           
+           removeCurva(button, state, x, y)      
 
     glutPostRedisplay()
+
+
+def editaCurva(button, state, x, y):
+    global moving_vertex
+    global editing
+    global PontoClicado
+    global PontosClicados
+    global PosAtualDoMouse
+    global VerdadeiraPosMouse
+    global mouseClicked
+    global idCurva
+    global isDrawing
+    global lastState
+    
+    if(traca_pol_controle):
+        if(state == GLUT_DOWN):
+            aux_vertex = get_vertice_curva()
+            if(aux_vertex != None):
+                moving_vertex = aux_vertex
+                editing = True
+        
+        if(state == GLUT_UP):
+            editing = False
+            moving_vertex = None
+
+
+def removeCurva(button, state, x, y):
+    global PontoClicado
+    global PontosClicados
+    global PosAtualDoMouse
+    global VerdadeiraPosMouse
+    global mouseClicked
+    global idCurva
+    global isDrawing
+    global lastState
+    
+    if(len(Curvas) > 0 and traca_pol_controle):
+        curvas = Curvas.copy()
+        for curva in curvas:
+            pontos = curva.getPontos()
+            p0 = [pontos[0].x, pontos[0].y]
+            p1 = [pontos[1].x, pontos[1].y]
+            p2 = [pontos[2].x, pontos[2].y]
+
+            if button == GLUT_LEFT_BUTTON and state == GLUT_DOWN:
+                point = ConvertePonto(Ponto(x, y))
+                aresta0 = [p0, p1]   
+                aresta1 = [p1, p2]
+                aresta2 = [p0, p2]         
+
+                canRemove = point_on_edge(point, aresta0) or point_on_edge(point, aresta1) or point_on_edge(point, aresta2)
+
+                if canRemove:
+                    Curvas.remove(curva)
+                    # print("Curva removida")
+
 
 def setup_menu_options():
         menu.add_option("Sem Continuidade", True, ClearPontosClicados)
@@ -637,7 +646,6 @@ def setup_menu_options():
 
 def ClearPontosClicados():
     PontosClicados.clear()
-    print("Pontos Excluidos!")
 
 def LimpaTela():
     global idCurva
@@ -648,12 +656,10 @@ def LimpaTela():
     lastState = ""
     PontosClicados.clear()
     
-    # print("Limpa telaa")
 
 def SwitchPoligonoControle():
     global traca_pol_controle
     traca_pol_controle = not traca_pol_controle
-    print(f"Poligono de Controle: {traca_pol_controle}")
 
 def projeta_ponto(checkpoint_b, checkpoint_c):
     return checkpoint_c.__add__(checkpoint_c.__sub__(checkpoint_b))
@@ -677,14 +683,22 @@ def done_drawing():
 def Motion(x: int, y: int):
     global PosAtualDoMouse
     
+    grupoAtual = -1
+    
     P = Ponto(x, y)
     PosAtualDoMouse = ConvertePonto(P)
     if(menu.active_option == 3):
         if(editing and (PosAtualDoMouse.y < 13.8 and PosAtualDoMouse.y > -13)):
             moving_vertex["ponto"].x = PosAtualDoMouse.x
             moving_vertex["ponto"].y = PosAtualDoMouse.y
-
+            
             if(moving_vertex["curva"].Tipo == "derivada"):
+                
+                # print("=========================================================")
+                # print(f'Curva = {moving_vertex["curva"]}')
+                # print(f'Curva.idCurva = {moving_vertex["curva"].idCurva}')
+                # print(f'grupoAtual = {grupoAtual}')
+                
                 ponto_a = moving_vertex["curva"].Coords[0]
                 ponto_b = moving_vertex["curva"].Coords[1]
                 ponto_c = moving_vertex["curva"].Coords[2]
@@ -711,7 +725,7 @@ def PassiveMotion(x: int, y: int):
 # Programa Principal
 # ***********************************************************************************
 
-print("Programa OpenGL")
+# print("Programa OpenGL")
 
 glutInit(sys.argv)
 glutInitDisplayMode(GLUT_DOUBLE | GLUT_DEPTH | GLUT_RGB)
