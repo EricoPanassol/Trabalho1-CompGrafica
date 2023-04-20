@@ -25,12 +25,13 @@ from Poligonos import *
 from InstanciaBZ import *
 from Bezier import *
 from ListaDeCoresRGB import *
+from Menu import *
 import math
 # ***********************************************************************************
 
 # Modelos de Objetos
-MeiaSeta = Polygon()
-Mastro = Polygon()
+# MeiaSeta = Polygon()
+# Mastro = Polygon()
 
 # Limites da Janela de Seleção
 Min = Ponto()
@@ -114,33 +115,6 @@ def ImprimePonto(P: Ponto, x: int, y: int, cor: tuple):
 # **********************************************************************
 
 
-def ImprimeMensagens():
-    PrintString(Mensagens[len(PontosClicados)-1], -14, 13, White)
-   
-    # if(len(PontosClicados) == 0):
-    #     PrintString("Clique no 1° ponto", -14, 13, White)
-    # elif(len(PontosClicados) == 1):
-    #     PrintString("Clique no 2° ponto", -14, 13, White)
-    # else:
-    #     PrintString("Clique no 3° ponto", -14, 13, White)
-   
-    # if nPontoAtual > 0:
-    #     PrintString("Ultimo ponto clicado: ", -14, 11, Red)
-    #     ImprimePonto(PontosClicados[nPontoAtual-1], -14, 9, Red)
-
-    PrintString("Mouse pos: ", -14, 11, White)
-    ImprimePonto(PosAtualDoMouse, -11, 11, White)
-
-    PrintString("Mouse: ", -14, 9, White)
-    PrintString("Down", -12, 9,White) if mouseClicked else PrintString("Up", -12, 9, White)
-   
-    PrintString("N° Curvas: ", -14, 7, White)
-    PrintString(str(len(Curvas)), -11, 7, White)
-   
-    PrintString("Mode: ", -14, 5, White)
-    PrintString(str(mode), -12, 5, White)
-
-
 # **********************************************************************
 def animate():
     glutPostRedisplay()
@@ -166,30 +140,30 @@ def reshape(w, h):
 # **************************************************************
 
 
-def DesenhaEixos():
-    global Min, Max
+# def DesenhaEixos():
+    # global Min, Max
 
-    Meio = Ponto()
-    Meio.x = (Max.x+Min.x)/2
-    Meio.y = (Max.y+Min.y)/2
-    Meio.z = (Max.z+Min.z)/2
+    # Meio = Ponto()
+    # Meio.x = (Max.x+Min.x)/2
+    # Meio.y = (Max.y+Min.y)/2
+    # Meio.z = (Max.z+Min.z)/2
 
-    glBegin(GL_LINES)
-    #  eixo horizontal
-    glVertex2f(Min.x, Meio.y)
-    glVertex2f(Max.x, Meio.y)
-    #  eixo vertical
-    glVertex2f(Meio.x, Min.y)
-    glVertex2f(Meio.x, Max.y)
-    glEnd()
+    # glBegin(GL_LINES)
+    # #  eixo horizontal
+    # glVertex2f(Min.x, Meio.y)
+    # glVertex2f(Max.x, Meio.y)
+    # #  eixo vertical
+    # glVertex2f(Meio.x, Min.y)
+    # glVertex2f(Meio.x, Max.y)
+    # glEnd()
 
 # **************************************************************
 
 
-def CarregaModelos():
-    global MeiaSeta, Mastro
-    MeiaSeta.LePontosDeArquivo("MeiaSeta.txt")
-    Mastro.LePontosDeArquivo("Mastro.txt")
+# def CarregaModelos():
+#     global MeiaSeta, Mastro
+#     MeiaSeta.LePontosDeArquivo("MeiaSeta.txt")
+#     Mastro.LePontosDeArquivo("Mastro.txt")
 
 # **************************************************************
 
@@ -210,7 +184,7 @@ def init():
     # Define a cor do fundo da tela (PRETO)
     glClearColor(0, 0, 0, 0)
 
-    CarregaModelos()
+    # CarregaModelos()
 
     d: float = 15
     Min = Ponto(-d, -d)
@@ -253,15 +227,6 @@ def DesenhaPontos():
     glEnd()
     glPointSize(1)
 
-# **********************************************************************
-
-
-def DesenhaMenu():
-    glPushMatrix()
-    glTranslated(11, 13, 0)  # veja o arquivo MeiaSeta.txt
-    MeiaSeta.desenhaPoligono()
-    glPopMatrix()
-
 # ***********************************************************************************
 
 
@@ -279,9 +244,6 @@ def display():
     # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     glLineWidth(1)
     defineCor(White)
-
-    DesenhaMenu()
-    DesenhaEixos()
 
     nPontoAtual = len(PontosClicados)
 
@@ -566,6 +528,7 @@ def mouse(button: int, state: int, x: int, y: int):
                     PontosClicados.append(ConvertePonto(Ponto(x, y)))
                     Linha.append(ConvertePonto(Ponto(x,y)))
                     PosAtualDoMouse = PontosClicados[len(PontosClicados)-1]
+                    print("P=", PosAtualDoMouse.y)
                
                
                
