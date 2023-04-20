@@ -79,6 +79,7 @@ MouseState = [
 angulo = 0.0
 desenha = True
 idCurva = 0
+lastState = ""
 
 
 # **********************************************************************
@@ -463,6 +464,7 @@ def mouse(button: int, state: int, x: int, y: int):
     global mouseClicked
     global idCurva
     global isDrawing
+    global lastState
     
     # Se for o botão direito deixa criar curvas clicando em 3 pontos
     # se for o botão esquerdo ele cria a curva de bezier a partir do rubberbanding
@@ -512,9 +514,11 @@ def mouse(button: int, state: int, x: int, y: int):
                 CriaCurvas("sem_continuidade")
                 ClearPontosClicados()
                 
-            # if(len(Curvas) > 0):
-            #     for curva in Curvas:
-            #         print(f"curva.idCurva: {curva.idCurva}")
+            if(len(Curvas) > 0):
+                for curva in Curvas:
+                    print(f"curva.idCurva: {curva.idCurva}")
+
+            lastState = "sem_continuidade"
 
         #******************************************
         #         CONTINUIDADE DE POSICAO          
@@ -538,6 +542,13 @@ def mouse(button: int, state: int, x: int, y: int):
                 ClearPontosClicados()
                 PontosClicados.append(checkpoint)
                 PosAtualDoMouse = PontosClicados[len(PontosClicados)-1]
+            
+            if(len(Curvas) > 0):
+                for curva in Curvas:
+                    print(f"curva.idCurva: {curva.idCurva}")
+                    
+            lastState = "posicao"
+
 
         #******************************************
         #*        CONTINUIDADE DE DERIVADA          
@@ -572,6 +583,8 @@ def mouse(button: int, state: int, x: int, y: int):
             if(len(Curvas) > 0):
                 for curva in Curvas:
                     print(f"curva.idCurva: {curva.idCurva}")
+                    
+            lastState = "derivada"
 
 
         if(menu.active_option == 3):
@@ -628,12 +641,14 @@ def ClearPontosClicados():
 
 def LimpaTela():
     global idCurva
+    global lastState
     
     idCurva = 0
-    print("Limpa telaa")
     Curvas.clear()
+    lastState = ""
     PontosClicados.clear()
     
+    # print("Limpa telaa")
 
 def SwitchPoligonoControle():
     global traca_pol_controle
@@ -648,7 +663,10 @@ def done_drawing():
     global isDrawing
     
     ClearPontosClicados()
-    idCurva += 1
+    if(lastState == "sem_continuidade"):
+        pass
+    else:
+        idCurva += 1
     isDrawing = False
     
 
