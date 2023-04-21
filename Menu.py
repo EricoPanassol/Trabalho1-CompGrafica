@@ -66,13 +66,16 @@ class Menu:
             clear()
 
         if(state == GLUT_DOWN):
-            if(option_index < 7):
-                for i in range(7):
+            if(option_index < 6):
+                for i in range(6):
                     self.options[i]["is_active"] = False
 
                 self.options[option_index]["is_active"] = True
                 self.active_option = option_index
                 
+            elif(option_index == 6):
+                option["is_active"] = not option["is_active"]
+
             elif(option_index == 7):
                 option["is_active"] = not option["is_active"]
                 option['callback']

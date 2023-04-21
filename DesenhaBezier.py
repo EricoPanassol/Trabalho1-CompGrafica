@@ -366,17 +366,6 @@ def display():
         temp_curve.Traca()
         defineCor(IndianRed)
         temp_curve.TracaPoligonoDeControle()
-        #defineCor(IndianRed)
-
-    # if(moving_vertex):
-    #     vertice_selecionada = get_vertice_curva()
-        
-    #     vertice_selecionada.x = VerdadeiraPosMouse.x
-    #     vertice_selecionada.y = VerdadeiraPosMouse.y
-
-        
-    # if(len(Linha) > 1):
-    #     DesenhaLinha(Linha[0], Linha[1])
 
     glLineWidth(3)
     defineCor(Red)
@@ -467,21 +456,14 @@ def mouse(button: int, state: int, x: int, y: int):
     global PosAtualDoMouse
     global VerdadeiraPosMouse
     global mouseClicked
-    # global idCurva
     global isDrawing
-    # global lastState
-    
-    # Se for o botão direito deixa criar curvas clicando em 3 pontos
-    # se for o botão esquerdo ele cria a curva de bezier a partir do rubberbanding
+    global idCurva
 
     PontoClicado = ConvertePonto(Ponto(x,y))
-
-    # print(f"PontoClicado.x : {PontoClicado.x}")
 
     if(button == GLUT_LEFT_BUTTON and state == GLUT_DOWN):
         mouseClicked = True
         if(VerdadeiraPosMouse.y > 14 and VerdadeiraPosMouse.x < 12):
-            # print('called')
             last_active_option = str(menu.active_option)
             menu.get_option_click(PontoClicado, state)
             new_active_option = str(menu.active_option)
@@ -497,7 +479,9 @@ def mouse(button: int, state: int, x: int, y: int):
     if(clicked_inside_canvas):
         isDrawing = True
         
-        # sem continuidade
+        # *********************************************************************
+        # OPÇÃO MENU = CURVA SEM CONTINUIDADE
+        # *********************************************************************
         if(menu.active_option == 0):
             if(state == GLUT_DOWN):
                 if(len(PontosClicados) == 0):
@@ -511,16 +495,11 @@ def mouse(button: int, state: int, x: int, y: int):
             if(len(PontosClicados) == 3):
                 CriaCurvas("sem_continuidade")
                 ClearPontosClicados()
-            
-            #done_drawing()
-                
-            # if(len(Curvas) > 0):
-            #     for curva in Curvas:
-            #         print(f"curva.idCurva: {curva.idCurva}")
+                idCurva += 1
 
-            #lastState = "sem_continuidade"
-
-        # com continuidade de posição
+        # *********************************************************************
+        # OPÇÃO MENU = CURVA COM CONTINUIDADE DE POSICAO
+        # *********************************************************************
         if(menu.active_option == 1):
             if(state == GLUT_DOWN):
                 if(len(PontosClicados) == 0):
@@ -532,20 +511,21 @@ def mouse(button: int, state: int, x: int, y: int):
                 PosAtualDoMouse = PontosClicados[len(PontosClicados)-1]
 
             if(len(PontosClicados) == 3):
-                checkpoint = PontosClicados[2] 
-                CriaCurvas("posicao")
+                checkpoint_b = PontosClicados[1]
+                checkpoint_c = PontosClicados[2]
+                projected_point = projeta_ponto(checkpoint_b, checkpoint_c)
+                if(len(Curvas) > 0 and Curvas[-1].Tipo == "posicao" and idCurva == Curvas[-1].idCurva):
+                    CriaCurvas("posicao", projected_point, Curvas[-1].Coords[1])
+                else:
+                    CriaCurvas("posicao", projected_point, None)
                 ClearPontosClicados()
-                PontosClicados.append(checkpoint)
+                PontosClicados.append(checkpoint_c)
                 PosAtualDoMouse = PontosClicados[len(PontosClicados)-1]
-            
-            # if(len(Curvas) > 0):
-            #     for curva in Curvas:
-            #         print(f"derivadaDe: {curva.derivadaDe}")
-                    
-            # lastState = "posicao"
+                
 
-
-        # com continuidade de derivada/tangente
+        # *********************************************************************
+        # OPÇÃO MENU = CURVA COM CONTINUIDADE DE DERIVADA
+        # *********************************************************************
         if(menu.active_option == 2):
             if(state == GLUT_DOWN):
                 if(len(PontosClicados) == 0):
@@ -568,35 +548,58 @@ def mouse(button: int, state: int, x: int, y: int):
                 PosAtualDoMouse = PontosClicados[len(PontosClicados)-1]
                 PontosClicados.append(projected_point)
                 PosAtualDoMouse = PontosClicados[len(PontosClicados)-1]
-            
-            # if(len(Curvas) > 0):
-            #     for curva in Curvas:
-            #         print(f"curva.idCurva: {curva.idCurva}")
-                    
-            # lastState = "derivada"
 
-        
-
+        # *********************************************************************
+        # OPÇÃO MENU = EDITAR CURVA
+        # *********************************************************************
         if(menu.active_option == 3):
             editaCurva(button, state, x, y)
 
+
+        # *********************************************************************
+        # OPÇÃO MENU = CONECTAR CURVAS
+        # *********************************************************************
         if(menu.active_option == 6):
+            if(traca_pol_controle):
+                if(state == GLUT_DOWN):
+                    aux_vertex = get_vertice_curva()
+                    naoCompartilhado = True
+                    if(aux_vertex != None):
+                        for curva in Curvas:
+                            if aux_vertex['ponto'] in curva and curva != aux_vertex['curva']:
+                                naoCompartilhado = False
+                                break
+
+                    if(naoCompartilhado):
+                        if(menu.active_option == '1'):
+                            # desenha curva
+                            pass
+
+        # *********************************************************************
+        # OPÇÃO MENU = ALTERAR TIPO DA CURVA
+        # *********************************************************************
+        if(menu.active_option == 5):
             if(traca_pol_controle):
                 if(state == GLUT_DOWN):
                     aux_vertex = get_vertice_curva()
                     if(aux_vertex != None):
                         print(f"ponto clicado:\nx={aux_vertex['ponto'].x}\ny={aux_vertex['ponto'].y}\nTipo: {aux_vertex['curva'].Tipo}")
                         #idCurvaSelecionada = aux_vertex["curva"].idCurva
-                        for curva in Curvas:
+                        for i,curva in enumerate(Curvas):
                             if aux_vertex['ponto'] in curva.Coords:
                             #if curva.idCurva == idCurvaSelecionada:
                                 if curva.Tipo == "posicao":
                                     curva.Tipo = "derivada"
+                                    if curva != aux_vertex["curva"]:
+                                        curva.Coords[1] = aux_vertex['curva'].ponto_projetado
+                                        curva.derivadaDe = aux_vertex['curva'].Coords[1]
+
                                 elif curva.Tipo == "derivada":
                                     curva.Tipo = "posicao"
                             
-
-
+        # *********************************************************************
+        # OPÇÃO MENU = REMOVER CURVA
+        # *********************************************************************
         if(menu.active_option == 4):
            removeCurva(button, state, x, y)      
 
@@ -656,24 +659,6 @@ def removeCurva(button, state, x, y):
 
                 if canRemove:
                     Curvas.remove(curva)
-                    # if(curva.Tipo == "sem_continuidade"):
-                    #     for cs in CurvasSemContinuidade:
-                    #         for c in cs:
-                    #             if(curva == c):
-                    #                 cs.remove(c)
-                    
-                    # if(curva.Tipo == "posicao"):
-                    #     for cs in CurvasPosicao:
-                    #         for c in cs:
-                    #             if(curva == c):
-                    #                 cs.remove(c)
-
-                    # if(curva.Tipo == "derivada"):
-                    #     for cs in CurvasDerivadas:
-                    #         for c in cs:
-                    #             if(curva == c):
-                    #                 cs.remove(c)
-                    # print("Curva removida")
 
 
 def setup_menu_options():
@@ -682,8 +667,8 @@ def setup_menu_options():
         menu.add_option("Cont de Derivada", False, ClearPontosClicados)
         menu.add_option("Editar Vertices", False, ClearPontosClicados)
         menu.add_option("Remover Curva", False, ClearPontosClicados)
-        menu.add_option("Conectar Curva", False, ClearPontosClicados)
         menu.add_option("Alt Tipo Curva", False, ClearPontosClicados)
+        menu.add_option("Conectar Curva", False, ClearPontosClicados)
         menu.add_option("Pol de Controle", True, SwitchPoligonoControle)
         menu.add_option("Limpa Tela", False, LimpaTela)
 
@@ -691,16 +676,7 @@ def ClearPontosClicados():
     PontosClicados.clear()
 
 def LimpaTela():
-    # global idCurva
-    # global lastState
-    
-    # idCurva = 0
     Curvas.clear()
-    # CurvasDerivadas.clear()
-    # CurvasPosicao.clear()
-    # CurvasSemContinuidade.clear()
-    # CurvasAux.clear()
-    # lastState = ""
     PontosClicados.clear()
     
 
@@ -714,39 +690,10 @@ def projeta_ponto(checkpoint_b, checkpoint_c):
 def done_drawing():
     global idCurva
     global isDrawing
-    
-    # curvas_aux = [x for x in CurvasAux]
-
-    # if(len(curvas_aux) > 0):
-    #     if(curvas_aux[0].Tipo == "sem_continuidade"):
-    #         CurvasSemContinuidade.append(curvas_aux)
-        
-    #     elif(curvas_aux[0].Tipo == "posicao"):
-    #         CurvasPosicao.append(curvas_aux)
-        
-    #     elif(curvas_aux[0].Tipo == "derivada"):
-    #         CurvasDerivadas.append(curvas_aux)
-
-    # CurvasAux.clear()
 
     ClearPontosClicados()
     isDrawing = False
     idCurva += 1
-    # print("##############################")
-    # for curvas in CurvasSemContinuidade:
-    #     print("Curvas sem continuidade")
-    #     for curva in curvas:
-    #         print(curva)
-    # print("------------------------")
-    # for curvas in CurvasPosicao:
-    #     print("Curvas Posição")
-    #     for curva in curvas:
-    #         print(curva)
-    # print("------------------------")
-    # for curvas in CurvasDerivadas:
-    #     print("Curvas Derivadas")
-    #     for curva in curvas:
-    #         print(curva)
     
 
 # **********************************************************************
@@ -766,10 +713,6 @@ def Motion(x: int, y: int):
             if(moving_vertex["curva"].Tipo == "derivada"):
 
                 idCurvaEditada = moving_vertex["curva"].idCurva
-                # for curva in Curvas:
-                #     # for curva in curvas:
-                #     if moving_vertex["ponto"] in curva.Coords:
-                #         curva_selecionada = curva   
             
                 ponto_a = moving_vertex["curva"].Coords[0]
                 ponto_b = moving_vertex["curva"].Coords[1]
@@ -802,6 +745,7 @@ def Motion(x: int, y: int):
                             curva.derivadaDe.y = ponto_reprojetado_para_tras.y
                         else:
                             break
+
                 for curva in curvas_depois:
                     if curva.idCurva == idCurvaEditada and curva.Tipo == "derivada":
                         ponto_b = curva.Coords[1]
@@ -818,8 +762,6 @@ def PassiveMotion(x: int, y: int):
 
     P = Ponto(x,y)
     VerdadeiraPosMouse = ConvertePonto(P)
-    # VerdadeiraPosMouse.imprime("Mouse:")
-    # print('')
 
 # ***********************************************************************************
 # Programa Principal
