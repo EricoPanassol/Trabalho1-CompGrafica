@@ -21,6 +21,12 @@ class Bezier:
             self.Coords.append(i)
         #P = self.Coords[2]
         #P.imprime()
+    
+    def setTipo(self, tipo):
+        self.tipo = tipo
+        
+    def setId(self, id):
+        self.id = id
 
     def Calcula(self, t):
         UmMenosT = 1-t
@@ -52,5 +58,10 @@ class Bezier:
     def GetPontos(self):
         return self.Coords
 
+    def getTipo(self):
+        return self.tipo
+    
+    def getId(self):
+        return self.id
            
             
