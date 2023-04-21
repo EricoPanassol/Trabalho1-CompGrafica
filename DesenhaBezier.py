@@ -88,6 +88,7 @@ aux = True
 primeiraExecucaoModo1 = True
 id = 0
 PontosDerivadas = []
+pontosAntecedentes = 0
 
 # **********************************************************************
 # Imprime o texto S na posicao (x,y), com a cor 'cor'
@@ -378,9 +379,11 @@ def arrow_keys(a_keys: int, x: int, y: int):
 
 
 def clear():
+    global nPontoAtual
     PontosClicados.clear()
     LinhaDerviada.clear()
     Linha.clear()
+    nPontoAtual = 0
    
 def dist(x1, y1, x2, y2, x3, y3): # x3,y3 is the point
     px = x2-x1
@@ -453,6 +456,9 @@ def mouse(button: int, state: int, x: int, y: int):
     global movendoPontoDerivada
     global casoPontoDerivada
     global PontosDerivadas
+    global pontosAntecedentes
+    global id
+    pontosAntecedentes = 1
     curvaCriada = False
     movendoPonto = False
     movendoPontoDerivada = False
@@ -489,22 +495,113 @@ def mouse(button: int, state: int, x: int, y: int):
                     count = 0
                     for curva in Curvas:
                         pontosPoli = curva.GetPontos()
-                        print(PontoAtual.GetX(), PontoAtual.GetY())
-                        a = math.dist([pontosPoli[0].GetX(), pontosPoli[0].GetY()], [PontoAtual.GetX(), PontoAtual.GetY()])
-                        b = math.dist([pontosPoli[1].GetX(), pontosPoli[1].GetY()], [PontoAtual.GetX(), PontoAtual.GetY()])
-                        c = math.dist([pontosPoli[2].GetX(), pontosPoli[2].GetY()], [PontoAtual.GetX(), PontoAtual.GetY()])
-                        if(a > -0.4 and a < 0.4):
-                            pontoMovendo = pontosPoli[0]
-                            movendoPonto = True
-                            break
-                        if(b > -0.4 and b < 0.4):
-                            pontoMovendo = pontosPoli[1]
-                            movendoPonto = True
-                            break
-                        if(c > -0.4 and c < 0.4):
-                            pontoMovendo = pontosPoli[2]
-                            movendoPonto = True
-                            break
+                        idTemp = curva.getId()
+                        print(curva.getTipo())
+                        if(curva.getTipo() != 2):
+                            print(PontoAtual.GetX(), PontoAtual.GetY())
+                            a = math.dist([pontosPoli[0].GetX(), pontosPoli[0].GetY()], [PontoAtual.GetX(), PontoAtual.GetY()])
+                            b = math.dist([pontosPoli[1].GetX(), pontosPoli[1].GetY()], [PontoAtual.GetX(), PontoAtual.GetY()])
+                            c = math.dist([pontosPoli[2].GetX(), pontosPoli[2].GetY()], [PontoAtual.GetX(), PontoAtual.GetY()])
+                            if(a > -0.4 and a < 0.4):
+                                pontoMovendo = pontosPoli[0]
+                                movendoPonto = True
+                                break
+                            elif(b > -0.4 and b < 0.4):
+                                pontoMovendo = pontosPoli[1]
+                                movendoPonto = True
+                                break
+                            elif(c > -0.4 and c < 0.4):
+                                pontoMovendo = pontosPoli[2]
+                                movendoPonto = True
+                                break
+                        else:
+                            a = math.dist([pontosPoli[0].GetX(), pontosPoli[0].GetY()], [PontoAtual.GetX(), PontoAtual.GetY()])
+                            b = math.dist([pontosPoli[1].GetX(), pontosPoli[1].GetY()], [PontoAtual.GetX(), PontoAtual.GetY()])
+                            c = math.dist([pontosPoli[2].GetX(), pontosPoli[2].GetY()], [PontoAtual.GetX(), PontoAtual.GetY()])
+                            if(a > -0.4 and a < 0.4):
+                                pontoMovendo = pontosPoli[0]
+                                movendoPonto = True
+                                break
+                            elif(b > -0.4 and b < 0.4):
+                                pontoMovendo = pontosPoli[1]
+                                if(count != 0):
+                                    if(count != len(Curvas)-1):
+                                        if((Curvas[count-1].getId() != idTemp) and (Curvas[count+1].getId() != idTemp)):
+                                            movendoPonto = True
+                                            break
+                                        else:
+                                            movendoPontoDerivada = True
+                                            casoPontoDerivada = 1
+                                    else:
+                                        movendoPontoDerivada = True
+                                        casoPontoDerivada = 1
+                                elif(count != len(Curvas)-1):
+                                    if(Curvas[count+1].getId() == idTemp):
+                                        movendoPontoDerivada = True
+                                        casoPontoDerivada = 1
+                                    else:
+                                        movendoPonto = True
+                                        break  
+                                else:
+                                    movendoPonto = True
+                                    break
+                                PontosDerivadas.append(pontosPoli[0])
+                                PontosDerivadas.append(pontosPoli[1])
+                                PontosDerivadas.append(pontosPoli[2]) 
+                                if(count != 0):
+                                    countAux1 = count - 1
+                                    while(True):
+                                        if(Curvas[countAux1].getId() == idTemp):
+                                            PontosDerivadas.insert(0, Curvas[countAux1].GetPontos()[1])
+                                            PontosDerivadas.insert(0, Curvas[countAux1].GetPontos()[0])
+                                            pontosAntecedentes = pontosAntecedentes + 2
+                                        else:
+                                            break
+                                        countAux1 = countAux1 - 1
+                                        if(countAux1 < 0):
+                                            break
+                                        
+                                if(count != len(Curvas)-1):
+                                    countAux2 = count + 1
+                                    while(True):
+                                        if(Curvas[countAux2].getId() == idTemp):
+                                            PontosDerivadas.append(Curvas[countAux2].GetPontos()[1])
+                                            PontosDerivadas.append(Curvas[countAux2].GetPontos()[2])
+                                        else:
+                                            break
+                                        countAux2 = countAux2 + 1
+                                        if(countAux2 == len(Curvas)):
+                                            break              
+                            elif(c > -0.4 and c < 0.4):
+                                pontoMovendo = pontosPoli[2]
+                                if((count != 0) and (count != len(Curvas)-1)):
+                                    if((Curvas[count-1].getId() != idTemp) and (Curvas[count+1].getId() != idTemp)):
+                                        movendoPonto = True
+                                        break
+                                    else:
+                                        movendoPontoDerivada = True
+                                        casoPontoDerivada = 2
+                                elif(count == 0 and (count != len(Curvas)-1)):
+                                    if(Curvas[count+1].getId() == idTemp):
+                                        movendoPontoDerivada = True
+                                        casoPontoDerivada = 2
+                                    else:
+                                        movendoPontoDerivada = True
+                                        casoPontoDerivada = 2
+                                else:
+                                    movendoPonto = True
+                                    break
+                                PontosDerivadas.append(pontosPoli[1])
+                                PontosDerivadas.append(pontosPoli[2])
+                                if(not(count >= len(Curvas)-1)):
+                                    while(Curvas[count+1].getId() == idTemp):
+                                        PontosDerivadas.append(Curvas[count+1].GetPontos()[1]) 
+                                        PontosDerivadas.append(Curvas[count+1].GetPontos()[2]) 
+                                        count = count + 1
+                                        if(count >= len(Curvas)-1):
+                                            break
+                                break
+                        count = count + 1
 
         if (button == GLUT_LEFT_BUTTON):
             if (state == GLUT_DOWN):
@@ -571,22 +668,113 @@ def mouse(button: int, state: int, x: int, y: int):
                     count = 0
                     for curva in Curvas:
                         pontosPoli = curva.GetPontos()
-                        print(PontoAtual.GetX(), PontoAtual.GetY())
-                        a = math.dist([pontosPoli[0].GetX(), pontosPoli[0].GetY()], [PontoAtual.GetX(), PontoAtual.GetY()])
-                        b = math.dist([pontosPoli[1].GetX(), pontosPoli[1].GetY()], [PontoAtual.GetX(), PontoAtual.GetY()])
-                        c = math.dist([pontosPoli[2].GetX(), pontosPoli[2].GetY()], [PontoAtual.GetX(), PontoAtual.GetY()])
-                        if(a > -0.4 and a < 0.4):
-                            pontoMovendo = pontosPoli[0]
-                            movendoPonto = True
-                            break
-                        if(b > -0.4 and b < 0.4):
-                            pontoMovendo = pontosPoli[1]
-                            movendoPonto = True
-                            break
-                        if(c > -0.4 and c < 0.4):
-                            pontoMovendo = pontosPoli[2]
-                            movendoPonto = True
-                            break
+                        idTemp = curva.getId()
+                        print(curva.getTipo())
+                        if(curva.getTipo() != 2):
+                            print(PontoAtual.GetX(), PontoAtual.GetY())
+                            a = math.dist([pontosPoli[0].GetX(), pontosPoli[0].GetY()], [PontoAtual.GetX(), PontoAtual.GetY()])
+                            b = math.dist([pontosPoli[1].GetX(), pontosPoli[1].GetY()], [PontoAtual.GetX(), PontoAtual.GetY()])
+                            c = math.dist([pontosPoli[2].GetX(), pontosPoli[2].GetY()], [PontoAtual.GetX(), PontoAtual.GetY()])
+                            if(a > -0.4 and a < 0.4):
+                                pontoMovendo = pontosPoli[0]
+                                movendoPonto = True
+                                break
+                            elif(b > -0.4 and b < 0.4):
+                                pontoMovendo = pontosPoli[1]
+                                movendoPonto = True
+                                break
+                            elif(c > -0.4 and c < 0.4):
+                                pontoMovendo = pontosPoli[2]
+                                movendoPonto = True
+                                break
+                        else:
+                            a = math.dist([pontosPoli[0].GetX(), pontosPoli[0].GetY()], [PontoAtual.GetX(), PontoAtual.GetY()])
+                            b = math.dist([pontosPoli[1].GetX(), pontosPoli[1].GetY()], [PontoAtual.GetX(), PontoAtual.GetY()])
+                            c = math.dist([pontosPoli[2].GetX(), pontosPoli[2].GetY()], [PontoAtual.GetX(), PontoAtual.GetY()])
+                            if(a > -0.4 and a < 0.4):
+                                pontoMovendo = pontosPoli[0]
+                                movendoPonto = True
+                                break
+                            elif(b > -0.4 and b < 0.4):
+                                pontoMovendo = pontosPoli[1]
+                                if(count != 0):
+                                    if(count != len(Curvas)-1):
+                                        if((Curvas[count-1].getId() != idTemp) and (Curvas[count+1].getId() != idTemp)):
+                                            movendoPonto = True
+                                            break
+                                        else:
+                                            movendoPontoDerivada = True
+                                            casoPontoDerivada = 1
+                                    else:
+                                        movendoPontoDerivada = True
+                                        casoPontoDerivada = 1
+                                elif(count != len(Curvas)-1):
+                                    if(Curvas[count+1].getId() == idTemp):
+                                        movendoPontoDerivada = True
+                                        casoPontoDerivada = 1
+                                    else:
+                                        movendoPonto = True
+                                        break  
+                                else:
+                                    movendoPonto = True
+                                    break
+                                PontosDerivadas.append(pontosPoli[0])
+                                PontosDerivadas.append(pontosPoli[1])
+                                PontosDerivadas.append(pontosPoli[2]) 
+                                if(count != 0):
+                                    countAux1 = count - 1
+                                    while(True):
+                                        if(Curvas[countAux1].getId() == idTemp):
+                                            PontosDerivadas.insert(0, Curvas[countAux1].GetPontos()[1])
+                                            PontosDerivadas.insert(0, Curvas[countAux1].GetPontos()[0])
+                                            pontosAntecedentes = pontosAntecedentes + 2
+                                        else:
+                                            break
+                                        countAux1 = countAux1 - 1
+                                        if(countAux1 < 0):
+                                            break
+                                        
+                                if(count != len(Curvas)-1):
+                                    countAux2 = count + 1
+                                    while(True):
+                                        if(Curvas[countAux2].getId() == idTemp):
+                                            PontosDerivadas.append(Curvas[countAux2].GetPontos()[1])
+                                            PontosDerivadas.append(Curvas[countAux2].GetPontos()[2])
+                                        else:
+                                            break
+                                        countAux2 = countAux2 + 1
+                                        if(countAux2 == len(Curvas)):
+                                            break              
+                            elif(c > -0.4 and c < 0.4):
+                                pontoMovendo = pontosPoli[2]
+                                if((count != 0) and (count != len(Curvas)-1)):
+                                    if((Curvas[count-1].getId() != idTemp) and (Curvas[count+1].getId() != idTemp)):
+                                        movendoPonto = True
+                                        break
+                                    else:
+                                        movendoPontoDerivada = True
+                                        casoPontoDerivada = 2
+                                elif(count == 0 and (count != len(Curvas)-1)):
+                                    if(Curvas[count+1].getId() == idTemp):
+                                        movendoPontoDerivada = True
+                                        casoPontoDerivada = 2
+                                    else:
+                                        movendoPontoDerivada = True
+                                        casoPontoDerivada = 2
+                                else:
+                                    movendoPonto = True
+                                    break
+                                PontosDerivadas.append(pontosPoli[1])
+                                PontosDerivadas.append(pontosPoli[2])
+                                if(not(count >= len(Curvas)-1)):
+                                    while(Curvas[count+1].getId() == idTemp):
+                                        PontosDerivadas.append(Curvas[count+1].GetPontos()[1]) 
+                                        PontosDerivadas.append(Curvas[count+1].GetPontos()[2]) 
+                                        count = count + 1
+                                        if(count >= len(Curvas)-1):
+                                            break
+                                break
+                        count = count + 1
                
         if(button == GLUT_LEFT_BUTTON):
             if(state == GLUT_DOWN):
@@ -640,8 +828,10 @@ def mouse(button: int, state: int, x: int, y: int):
    
     elif(mode == 2):
         if (button == GLUT_RIGHT_BUTTON):
+            clear()
+            id = id + 1
+            
             if (state == GLUT_DOWN):
-                clear()
                 if(removerPoli == True):
                     PontoAtual = ConvertePonto(Ponto(x, y))
                     count = 0
@@ -673,11 +863,11 @@ def mouse(button: int, state: int, x: int, y: int):
                                 pontoMovendo = pontosPoli[0]
                                 movendoPonto = True
                                 break
-                            if(b > -0.4 and b < 0.4):
+                            elif(b > -0.4 and b < 0.4):
                                 pontoMovendo = pontosPoli[1]
                                 movendoPonto = True
                                 break
-                            if(c > -0.4 and c < 0.4):
+                            elif(c > -0.4 and c < 0.4):
                                 pontoMovendo = pontosPoli[2]
                                 movendoPonto = True
                                 break
@@ -689,20 +879,69 @@ def mouse(button: int, state: int, x: int, y: int):
                                 pontoMovendo = pontosPoli[0]
                                 movendoPonto = True
                                 break
-                            if(b > -0.4 and b < 0.4):
+                            elif(b > -0.4 and b < 0.4):
                                 pontoMovendo = pontosPoli[1]
-                                movendoPontoDerivada = True
-                                casoPontoDerivada = 1
-                                break
-                            if(c > -0.4 and c < 0.4):
+                                if(count != 0):
+                                    if(count != len(Curvas)-1):
+                                        if((Curvas[count-1].getId() != idTemp) and (Curvas[count+1].getId() != idTemp)):
+                                            movendoPonto = True
+                                            break
+                                        else:
+                                            movendoPontoDerivada = True
+                                            casoPontoDerivada = 1
+                                    else:
+                                        movendoPontoDerivada = True
+                                        casoPontoDerivada = 1
+                                elif(count != len(Curvas)-1):
+                                    if(Curvas[count+1].getId() == idTemp):
+                                        movendoPontoDerivada = True
+                                        casoPontoDerivada = 1
+                                    else:
+                                        movendoPonto = True
+                                        break  
+                                else:
+                                    movendoPonto = True
+                                    break
+                                PontosDerivadas.append(pontosPoli[0])
+                                PontosDerivadas.append(pontosPoli[1])
+                                PontosDerivadas.append(pontosPoli[2]) 
+                                if(count != 0):
+                                    countAux1 = count - 1
+                                    while(True):
+                                        if(Curvas[countAux1].getId() == idTemp):
+                                            PontosDerivadas.insert(0, Curvas[countAux1].GetPontos()[1])
+                                            PontosDerivadas.insert(0, Curvas[countAux1].GetPontos()[0])
+                                            pontosAntecedentes = pontosAntecedentes + 2
+                                        else:
+                                            break
+                                        countAux1 = countAux1 - 1
+                                        if(countAux1 < 0):
+                                            break
+                                        
+                                if(count != len(Curvas)-1):
+                                    countAux2 = count + 1
+                                    while(True):
+                                        if(Curvas[countAux2].getId() == idTemp):
+                                            PontosDerivadas.append(Curvas[countAux2].GetPontos()[1])
+                                            PontosDerivadas.append(Curvas[countAux2].GetPontos()[2])
+                                        else:
+                                            break
+                                        countAux2 = countAux2 + 1
+                                        if(countAux2 == len(Curvas)):
+                                            break              
+                            elif(c > -0.4 and c < 0.4):
                                 pontoMovendo = pontosPoli[2]
                                 if((count != 0) and (count != len(Curvas)-1)):
-                                    if((Curvas[count-1].getId() != idTemp)):
+                                    if((Curvas[count-1].getId() != idTemp) and (Curvas[count+1].getId() != idTemp)):
                                         movendoPonto = True
                                         break
-                                    elif(Curvas[count+1].getId() != idTemp):
-                                        movendoPonto = True
-                                        break
+                                    else:
+                                        movendoPontoDerivada = True
+                                        casoPontoDerivada = 2
+                                elif(count == 0 and (count != len(Curvas)-1)):
+                                    if(Curvas[count+1].getId() == idTemp):
+                                        movendoPontoDerivada = True
+                                        casoPontoDerivada = 2
                                     else:
                                         movendoPontoDerivada = True
                                         casoPontoDerivada = 2
@@ -810,6 +1049,7 @@ def Motion(x: int, y: int):
     global PosAtualDoMouse
     global arrastaCurva
     global pontoMovendo
+    global pontosAntecedentes
 
     P = Ponto(x, y)
     PosAtualDoMouse = ConvertePonto(P)
@@ -821,12 +1061,30 @@ def Motion(x: int, y: int):
         if(casoPontoDerivada == 2):
             count = 1
             for ponto in PontosDerivadas:
-                if(count%2 != 0):
+                if(count%2 != 0 and count < len(PontosDerivadas)-1):
                     vetAux = PontosDerivadas[count].__sub__(ponto)
                     novoPonto = PontosDerivadas[count].__add__(vetAux)
                     PontosDerivadas[1+count].set(novoPonto.GetX(), novoPonto.GetY())
                 count = count + 1
                 if(count == len(PontosDerivadas)-1):
+                    break
+        else:
+            aux = pontosAntecedentes
+            while(aux > 2):
+                if(aux%2 != 0):
+                    vetAux = PontosDerivadas[aux].__sub__(PontosDerivadas[aux-1])
+                    novoPonto = PontosDerivadas[aux-1].__sub__(vetAux)
+                    PontosDerivadas[aux-2].set(novoPonto.GetX(), novoPonto.GetY())
+                aux = aux -1
+            aux2 = pontosAntecedentes
+            while(aux2 < len(PontosDerivadas)-2):
+                if(aux2%2 !=0):
+                    print("AUX: ", aux2)
+                    vetAux = PontosDerivadas[aux2+1].__sub__(PontosDerivadas[aux2])
+                    novoPonto = PontosDerivadas[aux2+1].__add__(vetAux)
+                    PontosDerivadas[aux2+2].set(novoPonto.GetX(), novoPonto.GetY())
+                aux2 = aux2 + 1
+                if(aux2 == len(PontosDerivadas)-2):
                     break
     else:
         if (len(PontosClicados) == 3 and curvaCriada == True):
