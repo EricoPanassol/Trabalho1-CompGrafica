@@ -480,7 +480,7 @@ def mouse(button: int, state: int, x: int, y: int):
 
     if(button == GLUT_LEFT_BUTTON and state == GLUT_DOWN):
         mouseClicked = True
-        if(VerdadeiraPosMouse.y > 14):
+        if(VerdadeiraPosMouse.y > 14 and VerdadeiraPosMouse.x < 12):
             # print('called')
             last_active_option = str(menu.active_option)
             menu.get_option_click(PontoClicado, state)
@@ -575,9 +575,27 @@ def mouse(button: int, state: int, x: int, y: int):
                     
             # lastState = "derivada"
 
+        
 
         if(menu.active_option == 3):
             editaCurva(button, state, x, y)
+
+        if(menu.active_option == 6):
+            if(traca_pol_controle):
+                if(state == GLUT_DOWN):
+                    aux_vertex = get_vertice_curva()
+                    if(aux_vertex != None):
+                        print(f"ponto clicado:\nx={aux_vertex['ponto'].x}\ny={aux_vertex['ponto'].y}\nTipo: {aux_vertex['curva'].Tipo}")
+                        #idCurvaSelecionada = aux_vertex["curva"].idCurva
+                        for curva in Curvas:
+                            if aux_vertex['ponto'] in curva.Coords:
+                            #if curva.idCurva == idCurvaSelecionada:
+                                if curva.Tipo == "posicao":
+                                    curva.Tipo = "derivada"
+                                elif curva.Tipo == "derivada":
+                                    curva.Tipo = "posicao"
+                            
+
 
         if(menu.active_option == 4):
            removeCurva(button, state, x, y)      
@@ -664,6 +682,8 @@ def setup_menu_options():
         menu.add_option("Cont de Derivada", False, ClearPontosClicados)
         menu.add_option("Editar Vertices", False, ClearPontosClicados)
         menu.add_option("Remover Curva", False, ClearPontosClicados)
+        menu.add_option("Conectar Curva", False, ClearPontosClicados)
+        menu.add_option("Alt Tipo Curva", False, ClearPontosClicados)
         menu.add_option("Pol de Controle", True, SwitchPoligonoControle)
         menu.add_option("Limpa Tela", False, LimpaTela)
 
@@ -773,16 +793,17 @@ def Motion(x: int, y: int):
                 print(curvas_depois)
                 
                 for curva in curvas_antes:
-                    if curva.derivadaDe != None and curva.idCurva == idCurvaEditada:
-                        ponto_a = curva.Coords[0]
-                        ponto_b = curva.Coords[1]
-                        ponto_reprojetado_para_tras = projeta_ponto(ponto_b, ponto_a)
-                        curva.derivadaDe.x = ponto_reprojetado_para_tras.x
-                        curva.derivadaDe.y = ponto_reprojetado_para_tras.y
-                    else:
-                        break
+                    if(curva.Tipo == "derivada"):
+                        if curva.derivadaDe != None and curva.idCurva == idCurvaEditada:
+                            ponto_a = curva.Coords[0]
+                            ponto_b = curva.Coords[1]
+                            ponto_reprojetado_para_tras = projeta_ponto(ponto_b, ponto_a)
+                            curva.derivadaDe.x = ponto_reprojetado_para_tras.x
+                            curva.derivadaDe.y = ponto_reprojetado_para_tras.y
+                        else:
+                            break
                 for curva in curvas_depois:
-                    if curva.idCurva == idCurvaEditada:
+                    if curva.idCurva == idCurvaEditada and curva.Tipo == "derivada":
                         ponto_b = curva.Coords[1]
                         ponto_c = curva.Coords[2]
             

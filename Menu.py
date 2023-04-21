@@ -35,10 +35,10 @@ class Menu:
                 background_color = Black
                 font_color = White
             if(n > 0):
-                glTranslated(4.28, 0, 0)
+                glTranslated(3, 0, 0)
             defineCor(background_color)
             option_box.desenhaRetangulo()
-            self.print_string(self.options[n].get("option"), -14.3, 14.3, font_color)
+            self.print_string(self.options[n].get("option"), -14.5, 14.3, font_color)
             defineCor(White)
         
         glPopMatrix()
@@ -57,7 +57,7 @@ class Menu:
         if(ponto.y < 14):
             return
 
-        option_index = int(7*(ponto.x + 15) / 30)
+        option_index = int(10*(ponto.x + 15) / 30)
 
         option = self.options[option_index]
 
@@ -66,18 +66,18 @@ class Menu:
             clear()
 
         if(state == GLUT_DOWN):
-            if(option_index < 5):
-                for i in range(5):
+            if(option_index < 7):
+                for i in range(7):
                     self.options[i]["is_active"] = False
 
                 self.options[option_index]["is_active"] = True
                 self.active_option = option_index
                 
-            elif(option_index == 5):
+            elif(option_index == 7):
                 option["is_active"] = not option["is_active"]
                 option['callback']
             
-            elif(option_index == 6):
+            elif(option_index == 8):
                 option["is_active"] = True
                 option["callback"]
                 option["is_active"] = False
