@@ -12,7 +12,7 @@ class Bezier:
         self.Tipo = ""
         self.ponto_projetado = None
         self.derivadaDe = None
-        self.idCruva = 0
+        # self.idCruva = 0
         #P = self.Coords[0]
         #P.imprime()
 
