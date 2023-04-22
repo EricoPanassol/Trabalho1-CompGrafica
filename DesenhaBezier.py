@@ -63,6 +63,7 @@ traca_pol_controle = True
 moving_vertex = None
 editing = False
 isDrawing = False
+isConecting = False
 
 Linha = []
 
@@ -85,7 +86,6 @@ desenha = True
 idCurva = 0
 # lastState = ""
 
-
 # **********************************************************************
 # Imprime o texto S na posicao (x,y), com a cor 'cor'
 # **********************************************************************
@@ -98,7 +98,6 @@ def PrintString(S: str, x: int, y: int, cor: tuple):
         # GLUT_BITMAP_TIMES_ROMAN_24
         # GLUT_BITMAP_HELVETICA_18
         glutBitmapCharacter(GLUT_BITMAP_9_BY_15, ord(c))
-
 
 # **********************************************************************
 # Imprime as coordenadas do ponto P na posicao (x,y), com a cor 'cor'
@@ -135,7 +134,6 @@ def ImprimeMensagens():
 def animate():
     glutPostRedisplay()
      
-
 # ***********************************************************************************
 def reshape(w,h):
     global Min, Max
@@ -178,7 +176,7 @@ def CarregaModelos():
     Mastro.LePontosDeArquivo("Mastro.txt")
 
 # **************************************************************
-def CriaCurvas(tipo, ponto_projetado = None, derivadaDe = None):
+def CriaCurvas(tipo, id_curva, ponto_projetado = None, derivadaDe = None):
     global Curvas 
     # global idCurva
 
@@ -186,7 +184,7 @@ def CriaCurvas(tipo, ponto_projetado = None, derivadaDe = None):
     C.Tipo = tipo
     C.ponto_projetado = ponto_projetado
     C.derivadaDe = derivadaDe
-    C.idCurva = idCurva
+    C.idCurva = id_curva
     Curvas.append(C)
     # CurvasAux.append(C)
 
@@ -375,7 +373,6 @@ def display():
 
     glutSwapBuffers()
 
-
 # ***********************************************************************************
 # The function called whenever a key is pressed. 
 # Note the use of Python tuples to pass in: (key, x, y)
@@ -446,7 +443,7 @@ def get_vertice_curva():
                             "ponto": coord}
     
     return None
-
+    
 # ***********************************************************************************
 # Captura o clique do botao esquerdo do mouse sobre a area de desenho
 # ***********************************************************************************
@@ -458,6 +455,8 @@ def mouse(button: int, state: int, x: int, y: int):
     global mouseClicked
     global isDrawing
     global idCurva
+    global isConecting
+    global conectingId
 
     PontoClicado = ConvertePonto(Ponto(x,y))
 
@@ -483,71 +482,19 @@ def mouse(button: int, state: int, x: int, y: int):
         # OPÇÃO MENU = CURVA SEM CONTINUIDADE
         # *********************************************************************
         if(menu.active_option == 0):
-            if(state == GLUT_DOWN):
-                if(len(PontosClicados) == 0):
-                    PontosClicados.append(PontoClicado)
-                    PosAtualDoMouse = PontosClicados[len(PontosClicados)-1]
-                    
-            if(state == GLUT_UP):
-                PontosClicados.append(PontoClicado)
-                PosAtualDoMouse = PontosClicados[len(PontosClicados)-1]
-
-            if(len(PontosClicados) == 3):
-                CriaCurvas("sem_continuidade")
-                ClearPontosClicados()
-                idCurva += 1
-
+            CriaNovaCurva(state,PontoClicado, idCurva,"sem_continuidade")
+            
         # *********************************************************************
         # OPÇÃO MENU = CURVA COM CONTINUIDADE DE POSICAO
         # *********************************************************************
         if(menu.active_option == 1):
-            if(state == GLUT_DOWN):
-                if(len(PontosClicados) == 0):
-                    PontosClicados.append(PontoClicado)
-                    PosAtualDoMouse = PontosClicados[len(PontosClicados)-1]
-                    
-            if(state == GLUT_UP):
-                PontosClicados.append(PontoClicado)
-                PosAtualDoMouse = PontosClicados[len(PontosClicados)-1]
-
-            if(len(PontosClicados) == 3):
-                checkpoint_b = PontosClicados[1]
-                checkpoint_c = PontosClicados[2]
-                projected_point = projeta_ponto(checkpoint_b, checkpoint_c)
-                if(len(Curvas) > 0 and Curvas[-1].Tipo == "posicao" and idCurva == Curvas[-1].idCurva):
-                    CriaCurvas("posicao", projected_point, Curvas[-1].Coords[1])
-                else:
-                    CriaCurvas("posicao", projected_point, None)
-                ClearPontosClicados()
-                PontosClicados.append(checkpoint_c)
-                PosAtualDoMouse = PontosClicados[len(PontosClicados)-1]
+            CriaNovaCurva(state,PontoClicado, idCurva,"posicao")
                 
-
         # *********************************************************************
         # OPÇÃO MENU = CURVA COM CONTINUIDADE DE DERIVADA
         # *********************************************************************
         if(menu.active_option == 2):
-            if(state == GLUT_DOWN):
-                if(len(PontosClicados) == 0):
-                    PontosClicados.append(PontoClicado)
-                    PosAtualDoMouse = PontosClicados[len(PontosClicados)-1]
-            if(state == GLUT_UP):
-                PontosClicados.append(PontoClicado)
-                PosAtualDoMouse = PontosClicados[len(PontosClicados)-1]
-
-            if(len(PontosClicados) == 3):
-                checkpoint_b = PontosClicados[1]
-                checkpoint_c = PontosClicados[2]
-                projected_point = projeta_ponto(checkpoint_b, checkpoint_c)
-                if(len(Curvas) > 0 and Curvas[-1].Tipo == "derivada" and idCurva == Curvas[-1].idCurva):
-                    CriaCurvas("derivada", projected_point, Curvas[-1].Coords[1])
-                else:
-                    CriaCurvas("derivada", projected_point, None)
-                ClearPontosClicados()
-                PontosClicados.append(checkpoint_c)
-                PosAtualDoMouse = PontosClicados[len(PontosClicados)-1]
-                PontosClicados.append(projected_point)
-                PosAtualDoMouse = PontosClicados[len(PontosClicados)-1]
+            CriaNovaCurva(state,PontoClicado, idCurva,"derivada")
 
         # *********************************************************************
         # OPÇÃO MENU = EDITAR CURVA
@@ -555,25 +502,42 @@ def mouse(button: int, state: int, x: int, y: int):
         if(menu.active_option == 3):
             editaCurva(button, state, x, y)
 
-
         # *********************************************************************
         # OPÇÃO MENU = CONECTAR CURVAS
         # *********************************************************************
-        if(menu.active_option == 6):
-            if(traca_pol_controle):
-                if(state == GLUT_DOWN):
-                    aux_vertex = get_vertice_curva()
-                    naoCompartilhado = True
-                    if(aux_vertex != None):
-                        for curva in Curvas:
-                            if aux_vertex['ponto'] in curva and curva != aux_vertex['curva']:
-                                naoCompartilhado = False
-                                break
+    
+        if(traca_pol_controle and isConecting):
+            print("conectando")
+            done_drawing()
+            compartilhado = False
+            if(state == GLUT_DOWN):
+                aux_vertex = get_vertice_curva()
+                if(aux_vertex != None):
+                    print("aux_vertex seleciondado")
+                    id_curva_selecionada = aux_vertex["curva"].idCurva
+                    for curva in Curvas:
+                        if aux_vertex['ponto'] in curva.Coords and aux_vertex["curva"] != curva:
+                            print("TA NI OTRA JA")
+                            compartilhado = True
+                print("onde que eu to")            
+                if(not compartilhado):
+                    if(menu.active_option == 0):
+                        isConecting = False
+                        menu.options[6]['is_active'] = False
+                        CriaNovaCurva(state, aux_vertex['ponto'], id_curva_selecionada, 'sem_continuidade')
 
-                    if(naoCompartilhado):
-                        if(menu.active_option == '1'):
-                            # desenha curva
-                            pass
+                    elif(menu.active_option == 1):
+                        isConecting = False
+                        menu.options[6]['is_active'] = False
+                        CriaNovaCurva(state, aux_vertex['ponto'], id_curva_selecionada, 'posicao')
+
+                    elif(menu.active_option == 2):
+                        print("conectando com derivada")
+                        isConecting = False
+                        menu.options[6]['is_active'] = False
+                        PontosClicados.append(aux_vertex["curva"].Coords[2])
+                        PontosClicados.append(aux_vertex["curva"].ponto_projetado)
+                        CriaNovaCurva(state, PontoClicado, id_curva_selecionada, 'derivada')
 
         # *********************************************************************
         # OPÇÃO MENU = ALTERAR TIPO DA CURVA
@@ -584,10 +548,8 @@ def mouse(button: int, state: int, x: int, y: int):
                     aux_vertex = get_vertice_curva()
                     if(aux_vertex != None):
                         print(f"ponto clicado:\nx={aux_vertex['ponto'].x}\ny={aux_vertex['ponto'].y}\nTipo: {aux_vertex['curva'].Tipo}")
-                        #idCurvaSelecionada = aux_vertex["curva"].idCurva
                         for i,curva in enumerate(Curvas):
                             if aux_vertex['ponto'] in curva.Coords:
-                            #if curva.idCurva == idCurvaSelecionada:
                                 if curva.Tipo == "posicao":
                                     curva.Tipo = "derivada"
                                     if curva != aux_vertex["curva"]:
@@ -605,7 +567,6 @@ def mouse(button: int, state: int, x: int, y: int):
 
     glutPostRedisplay()
 
-
 def editaCurva(button, state, x, y):
     global moving_vertex
     global editing
@@ -614,9 +575,7 @@ def editaCurva(button, state, x, y):
     global PosAtualDoMouse
     global VerdadeiraPosMouse
     global mouseClicked
-    # global idCurva
     global isDrawing
-    # global lastState
     
     if(traca_pol_controle):
         if(state == GLUT_DOWN):
@@ -630,16 +589,13 @@ def editaCurva(button, state, x, y):
             editing = False
             moving_vertex = None
 
-
 def removeCurva(button, state, x, y):
     global PontoClicado
     global PontosClicados
     global PosAtualDoMouse
     global VerdadeiraPosMouse
     global mouseClicked
-    # global idCurva
     global isDrawing
-    # global lastState
     
     if(len(Curvas) > 0 and traca_pol_controle):
         curvas = Curvas.copy()
@@ -660,7 +616,6 @@ def removeCurva(button, state, x, y):
                 if canRemove:
                     Curvas.remove(curva)
 
-
 def setup_menu_options():
         menu.add_option("Sem Continuidade", True, ClearPontosClicados)
         menu.add_option("Cont de Posição", False, ClearPontosClicados)
@@ -668,17 +623,69 @@ def setup_menu_options():
         menu.add_option("Editar Vertices", False, ClearPontosClicados)
         menu.add_option("Remover Curva", False, ClearPontosClicados)
         menu.add_option("Alt Tipo Curva", False, ClearPontosClicados)
-        menu.add_option("Conectar Curva", False, ClearPontosClicados)
+        menu.add_option("Conectar Curva", False, SwtichIsConectando)
         menu.add_option("Pol de Controle", True, SwitchPoligonoControle)
         menu.add_option("Limpa Tela", False, LimpaTela)
 
 def ClearPontosClicados():
+    global PontosClicados
     PontosClicados.clear()
 
 def LimpaTela():
     Curvas.clear()
     PontosClicados.clear()
     
+def SwtichIsConectando():
+    global isConecting
+    isConecting = not isConecting
+    print(isConecting)
+
+def assertCurvesIds():
+    for curva in Curvas:
+        for curva_i in Curvas:
+            for coord in curva_i.Coords:
+                if coord in curva.Coords:
+                    curva_i.idCurva = curva.idCurva
+
+def CriaNovaCurva(state, PontoClicado, id_curva, tipo):
+    global PosAtualDoMouse
+    global Curvas
+    global PontosClicados
+    global idCurva
+    global isConecting
+    
+    if(not isConecting):
+        if(state == GLUT_DOWN):
+            if(len(PontosClicados) == 0):
+                PontosClicados.append(PontoClicado)
+                PosAtualDoMouse = PontosClicados[len(PontosClicados)-1]
+        
+        if(state == GLUT_UP):
+            PontosClicados.append(PontoClicado)
+            PosAtualDoMouse = PontosClicados[len(PontosClicados)-1]
+        
+        if(len(PontosClicados) == 3):
+            checkpoint_b = PontosClicados[1]
+            checkpoint_c = PontosClicados[2]
+            projected_point = projeta_ponto(checkpoint_b, checkpoint_c)
+            if(len(Curvas) > 0 and Curvas[-1].Tipo == tipo and idCurva == Curvas[-1].idCurva):
+                CriaCurvas(tipo,id_curva, projected_point, Curvas[-1].Coords[1])
+            else:
+                CriaCurvas(tipo,id_curva, projected_point, None)
+            ClearPontosClicados()
+
+            if(menu.active_option == 0):
+                idCurva += 1
+
+            if(menu.active_option == 1 or menu.active_option == 2):
+                PontosClicados.append(checkpoint_c)
+                PosAtualDoMouse = PontosClicados[len(PontosClicados)-1]
+                if(menu.active_option == 2):
+                    PontosClicados.append(projected_point)
+                    PosAtualDoMouse = PontosClicados[len(PontosClicados)-1]
+
+            assertCurvesIds()
+
 
 def SwitchPoligonoControle():
     global traca_pol_controle
@@ -713,50 +720,38 @@ def Motion(x: int, y: int):
             if(moving_vertex["curva"].Tipo == "derivada"):
 
                 idCurvaEditada = moving_vertex["curva"].idCurva
-            
-                ponto_a = moving_vertex["curva"].Coords[0]
-                ponto_b = moving_vertex["curva"].Coords[1]
-                ponto_c = moving_vertex["curva"].Coords[2]
-                
-                ponto_reprojetado = projeta_ponto(ponto_b, ponto_c)
-                moving_vertex["curva"].ponto_projetado.x = ponto_reprojetado.x
-                moving_vertex["curva"].ponto_projetado.y = ponto_reprojetado.y
-                
-                if(moving_vertex["curva"].derivadaDe != None and moving_vertex["curva"].idCurva == idCurvaEditada):
-                    ponto_reprojetado_para_tras = projeta_ponto(ponto_b, ponto_a)
-                    moving_vertex["curva"].derivadaDe.x = ponto_reprojetado_para_tras.x
-                    moving_vertex["curva"].derivadaDe.y = ponto_reprojetado_para_tras.y
 
                 indice_ponto_atual = Curvas.index(moving_vertex["curva"])
                 print(indice_ponto_atual)
-                curvas_antes = Curvas[:indice_ponto_atual]
+                curvas_antes = Curvas[:indice_ponto_atual+1]
                 curvas_antes.reverse()
                 print(curvas_antes)
-                curvas_depois = Curvas[indice_ponto_atual+1:]
+                curvas_depois = Curvas[indice_ponto_atual:]
                 print(curvas_depois)
                 
-                for curva in curvas_antes:
-                    if(curva.Tipo == "derivada"):
-                        if curva.derivadaDe != None and curva.idCurva == idCurvaEditada:
-                            ponto_a = curva.Coords[0]
-                            ponto_b = curva.Coords[1]
-                            ponto_reprojetado_para_tras = projeta_ponto(ponto_b, ponto_a)
-                            curva.derivadaDe.x = ponto_reprojetado_para_tras.x
-                            curva.derivadaDe.y = ponto_reprojetado_para_tras.y
-                        else:
-                            break
+                for i,curva in enumerate(curvas_antes):
 
-                for curva in curvas_depois:
-                    if curva.idCurva == idCurvaEditada and curva.Tipo == "derivada":
-                        ponto_b = curva.Coords[1]
-                        ponto_c = curva.Coords[2]
-            
-                        ponto_reprojetado = projeta_ponto(ponto_b, ponto_c)
-                        curva.ponto_projetado.x = ponto_reprojetado.x
-                        curva.ponto_projetado.y = ponto_reprojetado.y
+                    if len(curvas_antes) != i + 1:
+                        if(curva.Tipo == "derivada" and curvas_antes[i+1].Tipo == "derivada"):
+                            if curva.derivadaDe != None and curva.idCurva == idCurvaEditada:
+                                ponto_a = curva.Coords[0]
+                                ponto_b = curva.Coords[1]
+                                ponto_reprojetado_para_tras = projeta_ponto(ponto_b, ponto_a)
+                                curva.derivadaDe.x = ponto_reprojetado_para_tras.x
+                                curva.derivadaDe.y = ponto_reprojetado_para_tras.y
+                            else:
+                                break
+
+                for i,curva in enumerate(curvas_depois):
+                    if len(curvas_depois) != i + 1:
+                        if curva.idCurva == idCurvaEditada and curva.Tipo == "derivada" and curvas_depois[i+1].Tipo == "derivada":
+                            ponto_b = curva.Coords[1]
+                            ponto_c = curva.Coords[2]
+                
+                            ponto_reprojetado = projeta_ponto(ponto_b, ponto_c)
+                            curva.ponto_projetado.x = ponto_reprojetado.x
+                            curva.ponto_projetado.y = ponto_reprojetado.y
                         
-                        
-            
 def PassiveMotion(x: int, y: int):
     global VerdadeiraPosMouse
 
