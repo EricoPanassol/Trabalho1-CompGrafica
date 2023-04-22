@@ -509,37 +509,31 @@ def mouse(button: int, state: int, x: int, y: int):
         # *********************************************************************
     
         if(traca_pol_controle and isConecting):
-            print("conectando")
             compartilhado = False
             if(state == GLUT_DOWN):
                 aux_vertex = get_vertice_curva()
-                print(aux_vertex)
                 if(aux_vertex != None):
-                    print("aux_vertex seleciondado")
                     id_curva_selecionada = aux_vertex["curva"].idCurva
                     for curva in Curvas:
                         if aux_vertex['ponto'] in curva.Coords and aux_vertex["curva"] != curva:
-                            print("TA NI OTRA JA")
                             compartilhado = True
-
                     if(not compartilhado):
                         if(menu.active_option == 0):
                             isConecting = False
                             menu.options[6]['is_active'] = False
                             CriaNovaCurva(state, aux_vertex['ponto'], id_curva_selecionada, 'sem_continuidade')
-
                         elif(menu.active_option == 1):
                             isConecting = False
                             menu.options[6]['is_active'] = False
                             CriaNovaCurva(state, aux_vertex['ponto'], id_curva_selecionada, 'posicao')
-
                         elif(menu.active_option == 2):
-                            print("conectando com derivada")
                             isConecting = False
                             menu.options[6]['is_active'] = False
                             PontosClicados.append(aux_vertex["ponto"])
+                            PosAtualDoMouse = PontosClicados[len(PontosClicados)-1]
                             ponto_projetado = projeta_ponto(aux_vertex["curva"].Coords[1],aux_vertex["ponto"])
                             PontosClicados.append(ponto_projetado)
+                            PosAtualDoMouse = PontosClicados[len(PontosClicados)-1]
                             CriaNovaCurva(state, PontoClicado, id_curva_selecionada, 'derivada')
 
         # *********************************************************************
@@ -584,7 +578,7 @@ def editaCurva(button, state, x, y):
         if(state == GLUT_DOWN):
             aux_vertex = get_vertice_curva()
             if(aux_vertex != None):
-                print(f"Movendo a curva: {aux_vertex['curva'].idCurva}")
+                print(f"ID DA CURVA: {aux_vertex['curva'].idCurva}")
                 moving_vertex = aux_vertex
                 editing = True
         
