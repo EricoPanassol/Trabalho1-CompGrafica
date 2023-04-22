@@ -358,12 +358,15 @@ def display():
     defineCor(White)
     desenha_rubberband()
     
-    if(len(PontosClicados) == 2 and mouseClicked):
+    if(len(PontosClicados) == 2):
         temp_curve = Bezier(PontosClicados[0], PontosClicados[1], PosAtualDoMouse)
         defineCor(Aquamarine)
         temp_curve.Traca()
         defineCor(IndianRed)
         temp_curve.TracaPoligonoDeControle()
+
+    if(isConecting):
+        ClearPontosClicados()
 
     glLineWidth(3)
     defineCor(Red)
@@ -456,7 +459,6 @@ def mouse(button: int, state: int, x: int, y: int):
     global isDrawing
     global idCurva
     global isConecting
-    global conectingId
 
     PontoClicado = ConvertePonto(Ponto(x,y))
 
@@ -470,7 +472,7 @@ def mouse(button: int, state: int, x: int, y: int):
             if(last_active_option != new_active_option and len(Curvas) > 0):
                 done_drawing()
             
-    elif(button == GLUT_RIGHT_BUTTON and state == GLUT_UP):
+    elif(button == GLUT_LEFT_BUTTON and state == GLUT_UP):
         mouseClicked = False
 
     clicked_inside_canvas = PontoClicado.y < 14 and PontoClicado.y >= -13
@@ -508,7 +510,6 @@ def mouse(button: int, state: int, x: int, y: int):
     
         if(traca_pol_controle and isConecting):
             print("conectando")
-            done_drawing()
             compartilhado = False
             if(state == GLUT_DOWN):
                 aux_vertex = get_vertice_curva()
@@ -702,16 +703,7 @@ def done_drawing():
     isDrawing = False
     idCurva += 1
     
-
-# **********************************************************************
-# Captura as coordenadas do mouse do mouse sobre a area de
-# desenho, enquanto um dos botoes esta sendo pressionado
-# **********************************************************************
-def Motion(x: int, y: int):
-    global PosAtualDoMouse
-    
-    P = Ponto(x, y)
-    PosAtualDoMouse = ConvertePonto(P)
+def move_curvas_derivadas():
     if(menu.active_option == 3):
         if(editing and (PosAtualDoMouse.y < 13.8 and PosAtualDoMouse.y > -13)):
             moving_vertex["ponto"].x = PosAtualDoMouse.x
@@ -751,6 +743,18 @@ def Motion(x: int, y: int):
                             ponto_reprojetado = projeta_ponto(ponto_b, ponto_c)
                             curva.ponto_projetado.x = ponto_reprojetado.x
                             curva.ponto_projetado.y = ponto_reprojetado.y
+
+# **********************************************************************
+# Captura as coordenadas do mouse do mouse sobre a area de
+# desenho, enquanto um dos botoes esta sendo pressionado
+# **********************************************************************
+def Motion(x: int, y: int):
+    global PosAtualDoMouse
+    
+    P = Ponto(x, y)
+    PosAtualDoMouse = ConvertePonto(P)
+    move_curvas_derivadas()
+    
                         
 def PassiveMotion(x: int, y: int):
     global VerdadeiraPosMouse
