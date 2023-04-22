@@ -37,7 +37,7 @@ def ImprimeMensagens():
     # PrintString(str(len(Curvas)), -11, 7, White)
     # PrintString(str(mode), -1, 11, White)
     PrintString("", -11, 13, DarkBrown)
-    desenhaQuadrado(-15,15,-5,10)
+    desenhaQuadrado(-14.8,15,-5.3,10)
     PrintString("Modos ", -11, 13, OrangeRed)
    
     PrintString("Modo A", -14, 11, MandarinOrange)
@@ -48,17 +48,24 @@ def ImprimeMensagens():
     desenhaQuadrado(-8,11,-6,12)
 
     PrintString("", -11, 13, DarkBrown)
-    desenhaQuadrado(-5,15,15,10)
-    PrintString("Modos de edição de curva", 2, 13, OrangeRed)
+    desenhaQuadrado(-5,15,6.7,10)
+    PrintString("Modos de edição de curva", -1.5, 13, OrangeRed)
 
-    PrintString("Remove Curva",-4,11,MandarinOrange)
-    desenhaQuadrado(-4,11,-0.6,12)
-    PrintString("Movimenta Vértice",0,11,MandarinOrange)
-    desenhaQuadrado(0,11,4.4,12)
-    PrintString("Conecta curvas",5,11,MandarinOrange)
-    desenhaQuadrado(5,11,8,12)
-    PrintString("Atualiza continuidade entre curvas:",9,11,MandarinOrange)
-    desenhaQuadrado(9,11,15,12)
+    PrintString("Remove Curva",-4.8,11,MandarinOrange)
+    desenhaQuadrado(-4.8,11,-2,12)
+    PrintString("Movimenta Vértice",-1,11,MandarinOrange)
+    desenhaQuadrado(-1,11,2.5,12)
+    PrintString("Conecta curvas",3.5,11,MandarinOrange)
+    desenhaQuadrado(3.5,11,6.5,12)
+    
+    PrintString("", -11, 1, DarkBrown)
+    desenhaQuadrado(7,15,14.8,10)
+    PrintString("Poligonos",8.2,13,OrangeRed)
+    PrintString("Liga/Desliga",8,11,MandarinOrange)
+    desenhaQuadrado(8,11,10.5,12)
+    PrintString("Curvas",12.2,13,OrangeRed)
+    PrintString("Liga/Desliga",12,11,MandarinOrange)
+    desenhaQuadrado(12,11,14.5,12)
     
 
 def desenhaQuadrado(x1:int,y1:int,x2:int,y2:int):
