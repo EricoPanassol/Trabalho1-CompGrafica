@@ -49,6 +49,8 @@ Curvas = []
 PontosClicados = []
 PoligonoDeControle = None
 desenhaPoligonoControle = True
+desenhaCurva = True
+bloqueiaSubidaMenu = False
 
 Linha = []
 LinhaDerviada = []
@@ -63,7 +65,7 @@ removerPoli = False
 movePonto = False
 movendoPonto = False
 movendoPontoDerivada = False
-conexaoCurva = True
+conexaoCurva = False
 conexaoAtivada1 = False
 conexaoAtivada2Tipo1 = False
 conexaoAtivada2Tipo2 = False
@@ -110,7 +112,7 @@ def PrintString(S: str, x: int, y: int, cor: tuple):
         # GLUT_BITMAP_HELVETICA_10
         # GLUT_BITMAP_TIMES_ROMAN_24
         # GLUT_BITMAP_HELVETICA_18
-        glutBitmapCharacter(GLUT_BITMAP_TIMES_ROMAN_24, ord(c))
+        glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, ord(c))
 
 
 # **********************************************************************
@@ -277,6 +279,60 @@ def DesenhaMenu():
 # ***********************************************************************************
 
 
+def PintaBotoes():    
+    global mode, removerPoli, MoverPonto, conexaoCurva, desenhaPoligonoControle, desenhaPoligonoControle, desenhaCurva
+    
+    if(mode == 0):
+        PrintString("Modo B", -11, 11, MandarinOrange)
+        desenhaQuadrado(-11,11,-9,12)
+        PrintString("Modo C", -8, 11, MandarinOrange)
+        desenhaQuadrado(-8,11,-6,12)
+        PrintString("Modo A", -14, 11, Green)
+        desenhaQuadrado(-14,11,-12,12)
+    elif(mode == 1):
+        PrintString("Modo A", -14, 11, MandarinOrange)
+        desenhaQuadrado(-14,11,-12,12)
+        PrintString("Modo C", -8, 11, MandarinOrange)
+        desenhaQuadrado(-8,11,-6,12)
+        PrintString("Modo B", -11, 11, Green)
+        desenhaQuadrado(-11,11,-9,12)
+    elif(mode == 2):
+        PrintString("Modo A", -14, 11, MandarinOrange)
+        desenhaQuadrado(-14,11,-12,12)
+        PrintString("Modo B", -11, 11, MandarinOrange)
+        desenhaQuadrado(-11,11,-9,12)
+        PrintString("Modo C", -8, 11, Green)
+        desenhaQuadrado(-8,11,-6,12)
+
+    if(removerPoli):
+        PrintString("Remove Curva",-4.8,11,Green)
+        desenhaQuadrado(-4.8,11,-2,12)
+        PrintString("Movimenta Vértice",-1,11,MandarinOrange)
+        desenhaQuadrado(-1,11,2.5,12)
+        PrintString("Conecta curvas",3.5,11,MandarinOrange)
+        desenhaQuadrado(3.5,11,6.5,12)
+    elif(movePonto):
+        PrintString("Remove Curva",-4.8,11,MandarinOrange)
+        desenhaQuadrado(-4.8,11,-2,12)
+        PrintString("Movimenta Vértice",-1,11,Green)
+        desenhaQuadrado(-1,11,2.5,12)
+        PrintString("Conecta curvas",3.5,11,MandarinOrange)
+        desenhaQuadrado(3.5,11,6.5,12)
+    elif(conexaoCurva):
+        PrintString("Remove Curva",-4.8,11,MandarinOrange)
+        desenhaQuadrado(-4.8,11,-2,12)
+        PrintString("Movimenta Vértice",-1,11,MandarinOrange)
+        desenhaQuadrado(-1,11,2.5,12)
+        PrintString("Conecta curvas",3.5,11,Green)
+        desenhaQuadrado(3.5,11,6.5,12)
+
+    if(desenhaPoligonoControle):
+        PrintString("Liga/Desliga",8,11,Green)
+        desenhaQuadrado(8,11,10.5,12)
+    if(desenhaCurva):
+        PrintString("Liga/Desliga",12,11,Green)
+        desenhaQuadrado(12,11,14.5,12)
+
 def display():
 
     # Limpa a tela coma cor de fundo
@@ -306,9 +362,12 @@ def display():
     glLineWidth(3)
     defineCor(Red)
     DesenhaPontos()
-    DesenhaCurvas()
+    if(desenhaCurva):
+        DesenhaCurvas()
     ImprimeMensagens()
-
+        
+    PintaBotoes()
+    
     glutSwapBuffers()
 
 
@@ -449,6 +508,7 @@ def mouse(button: int, state: int, x: int, y: int):
     global mode
     global primeiraExecucaoModo1
     global desenhaPoligonoControle
+    global desenhaCurva
     global pontoAuxiliar
     global pontoAuxiliar2
     global aux
@@ -467,6 +527,7 @@ def mouse(button: int, state: int, x: int, y: int):
     global conexaoAtivada1
     global conexaoAtivada2Tipo1
     global conexaoAtivada2Tipo2
+    global bloqueiaSubidaMenu
     pontosAntecedentes = 1
     curvaCriada = False
     movendoPonto = False
@@ -479,6 +540,90 @@ def mouse(button: int, state: int, x: int, y: int):
     # **********************************************************************************
     # if(ConvertePonto(Ponto(x,y)).GetY()>10):
     #     return
+    PontoAtual = ConvertePonto(Ponto(x, y))
+    if(not bloqueiaSubidaMenu):
+        if(PontoAtual.GetY() > 11 and PontoAtual.GetY() < 13):
+            if(PontoAtual.GetX() > -14 and PontoAtual.GetX() < -12): #MODO 1
+                print("MODO 1")
+                if(mode != 0):
+                    mode = 0
+                    primeiraExecucaoModo1 = True
+                    if(conexaoAtivada2Tipo1 == True):
+                        id = guardaIdAnterior
+                        conexaoAtivada2Tipo1 = False
+                        conexaoAtivada2Tipo2 = False
+                    id = id + 1
+                clear()
+                bloqueiaSubidaMenu = True
+                return
+            if(PontoAtual.GetX() > -11 and PontoAtual.GetX() < -9): #MODO 2
+                print("MODO 2")
+                if(mode != 1):
+                    mode = 1
+                    primeiraExecucaoModo1 = True
+                    if(conexaoAtivada2Tipo1 == True):
+                        id = guardaIdAnterior
+                        conexaoAtivada2Tipo1 = False
+                        conexaoAtivada2Tipo2 = False
+                    id = id + 1
+                clear()
+                bloqueiaSubidaMenu = True
+                return
+            
+            if(PontoAtual.GetX() > -8 and PontoAtual.GetX() < -6): #MODO 3
+                print("MODO 3")
+                if(mode != 2):
+                    mode = 2
+                    primeiraExecucaoModo1 = True
+                    if(conexaoAtivada2Tipo1 == True):
+                        id = guardaIdAnterior
+                        conexaoAtivada2Tipo1 = False
+                        conexaoAtivada2Tipo2 = False
+                    id = id + 1
+                clear()
+                bloqueiaSubidaMenu = True
+                return
+            if(PontoAtual.GetX() > -4.8 and PontoAtual.GetX() < -2): #REMOVE CURVAS
+                print("REMOVE CURVAS")
+                removerPoli = not(removerPoli)
+                movePonto = False
+                conexaoCurva = False
+                bloqueiaSubidaMenu = True
+                clear()
+                return
+            if(PontoAtual.GetX() > -1 and PontoAtual.GetX() < 2.5): #MOVIMENTA VERTICES
+                print("MOVIMENTA VERTICES")
+                movePonto = not(movePonto)
+                removerPoli = False
+                conexaoCurva = False
+                bloqueiaSubidaMenu = True
+                clear()
+                return
+            if(PontoAtual.GetX() > 3.5 and PontoAtual.GetX() < 6.5): #CONECTA CURVAS
+                print("CONECTA CURVAS")
+                conexaoCurva = not(conexaoCurva)
+                movePonto = False
+                removerPoli = False
+                bloqueiaSubidaMenu = True
+                clear()
+                return
+            if(PontoAtual.GetX() > 8 and PontoAtual.GetX() < 10.5): #POLIGONO LIGA/DESLIGA
+                print("POLIGONO LIGA/DESLIGA")
+                desenhaPoligonoControle = not(desenhaPoligonoControle)
+                bloqueiaSubidaMenu = True
+                clear()
+                return
+            if(PontoAtual.GetX() > 12 and PontoAtual.GetX() < 14.5): #CURVA LIGA/DESLIGA
+                print("CURVAS LIGA/DESLIGA")
+                desenhaCurva = not(desenhaCurva)
+                bloqueiaSubidaMenu = True
+                clear()
+                return
+    else:
+        bloqueiaSubidaMenu = False
+        return
+    if(PontoAtual.GetY() > 9):
+        return
     if (mode == 0):
         if (arrastaCurva == True or len(PontosClicados) == 3):
             PontosClicados.clear()
@@ -752,6 +897,9 @@ def mouse(button: int, state: int, x: int, y: int):
 
         if (button == GLUT_LEFT_BUTTON):
             if (state == GLUT_DOWN):
+                movePonto = False
+                removerPoli = False
+                conexaoCurva = False
                 # print("Mouse down")
                 mouseClicked = True
                 if (len(PontosClicados) == 2):
@@ -1058,6 +1206,9 @@ def mouse(button: int, state: int, x: int, y: int):
                         count = count + 1
         if(button == GLUT_LEFT_BUTTON):
             if(state == GLUT_DOWN and mouseClicked == False):
+                movePonto = False
+                removerPoli = False
+                conexaoCurva = False
                 print("Mouse down")
                 mouseClicked = True;
                 if(conexaoAtivada1 == True):
@@ -1410,6 +1561,9 @@ def mouse(button: int, state: int, x: int, y: int):
            
         if (button == GLUT_LEFT_BUTTON):
             if (state == GLUT_DOWN):
+                movePonto = False
+                removerPoli = False
+                conexaoCurva = False
                 mouseClicked = True
                
                 if (len(PontosClicados) == 2):
