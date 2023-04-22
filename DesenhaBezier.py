@@ -513,6 +513,7 @@ def mouse(button: int, state: int, x: int, y: int):
             compartilhado = False
             if(state == GLUT_DOWN):
                 aux_vertex = get_vertice_curva()
+                print(aux_vertex)
                 if(aux_vertex != None):
                     print("aux_vertex seleciondado")
                     id_curva_selecionada = aux_vertex["curva"].idCurva
@@ -520,25 +521,26 @@ def mouse(button: int, state: int, x: int, y: int):
                         if aux_vertex['ponto'] in curva.Coords and aux_vertex["curva"] != curva:
                             print("TA NI OTRA JA")
                             compartilhado = True
-                print("onde que eu to")            
-                if(not compartilhado):
-                    if(menu.active_option == 0):
-                        isConecting = False
-                        menu.options[6]['is_active'] = False
-                        CriaNovaCurva(state, aux_vertex['ponto'], id_curva_selecionada, 'sem_continuidade')
 
-                    elif(menu.active_option == 1):
-                        isConecting = False
-                        menu.options[6]['is_active'] = False
-                        CriaNovaCurva(state, aux_vertex['ponto'], id_curva_selecionada, 'posicao')
+                    if(not compartilhado):
+                        if(menu.active_option == 0):
+                            isConecting = False
+                            menu.options[6]['is_active'] = False
+                            CriaNovaCurva(state, aux_vertex['ponto'], id_curva_selecionada, 'sem_continuidade')
 
-                    elif(menu.active_option == 2):
-                        print("conectando com derivada")
-                        isConecting = False
-                        menu.options[6]['is_active'] = False
-                        PontosClicados.append(aux_vertex["curva"].Coords[2])
-                        PontosClicados.append(aux_vertex["curva"].ponto_projetado)
-                        CriaNovaCurva(state, PontoClicado, id_curva_selecionada, 'derivada')
+                        elif(menu.active_option == 1):
+                            isConecting = False
+                            menu.options[6]['is_active'] = False
+                            CriaNovaCurva(state, aux_vertex['ponto'], id_curva_selecionada, 'posicao')
+
+                        elif(menu.active_option == 2):
+                            print("conectando com derivada")
+                            isConecting = False
+                            menu.options[6]['is_active'] = False
+                            PontosClicados.append(aux_vertex["ponto"])
+                            ponto_projetado = projeta_ponto(aux_vertex["curva"].Coords[1],aux_vertex["ponto"])
+                            PontosClicados.append(ponto_projetado)
+                            CriaNovaCurva(state, PontoClicado, id_curva_selecionada, 'derivada')
 
         # *********************************************************************
         # OPÇÃO MENU = ALTERAR TIPO DA CURVA
