@@ -75,7 +75,6 @@ class Menu:
                 
             elif(option_index == 6):
                 option["is_active"] = not option["is_active"]
-                print("ativei o conecta curvas")
                 option["callback"]
 
             elif(option_index == 7):

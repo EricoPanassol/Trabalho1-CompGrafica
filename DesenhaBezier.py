@@ -267,7 +267,6 @@ def removeCurve(button: int, state: int, x: int, y: int):
                 
                 if canRemove and traca_pol_controle:
                     Curvas.remove(curva)
-                    # print("Curva removida")
 
 # ***********************************************************************************
 def point_on_edge(point, edge):
@@ -544,7 +543,6 @@ def mouse(button: int, state: int, x: int, y: int):
                 if(state == GLUT_DOWN):
                     aux_vertex = get_vertice_curva()
                     if(aux_vertex != None):
-                        print(f"ponto clicado:\nx={aux_vertex['ponto'].x}\ny={aux_vertex['ponto'].y}\nTipo: {aux_vertex['curva'].Tipo}")
                         for i,curva in enumerate(Curvas):
                             if aux_vertex['ponto'] in curva.Coords:
                                 if curva.Tipo == "posicao":
@@ -567,18 +565,11 @@ def mouse(button: int, state: int, x: int, y: int):
 def editaCurva(button, state, x, y):
     global moving_vertex
     global editing
-    global PontoClicado
-    global PontosClicados
-    global PosAtualDoMouse
-    global VerdadeiraPosMouse
-    global mouseClicked
-    global isDrawing
     
     if(traca_pol_controle):
         if(state == GLUT_DOWN):
             aux_vertex = get_vertice_curva()
             if(aux_vertex != None):
-                print(f"ID DA CURVA: {aux_vertex['curva'].idCurva}")
                 moving_vertex = aux_vertex
                 editing = True
         
@@ -587,13 +578,6 @@ def editaCurva(button, state, x, y):
             moving_vertex = None
 
 def removeCurva(button, state, x, y):
-    global PontoClicado
-    global PontosClicados
-    global PosAtualDoMouse
-    global VerdadeiraPosMouse
-    global mouseClicked
-    global isDrawing
-    
     if(len(Curvas) > 0 and traca_pol_controle):
         curvas = Curvas.copy()
         for curva in curvas:
@@ -635,7 +619,6 @@ def LimpaTela():
 def SwtichIsConectando():
     global isConecting
     isConecting = not isConecting
-    print(isConecting)
 
 def assertCurvesIds():
     for curva in Curvas:
@@ -699,7 +682,7 @@ def done_drawing():
     isDrawing = False
     idCurva += 1
     
-def move_curvas_derivadas():
+def move_vertices():
     if(menu.active_option == 3):
         if(editing and (PosAtualDoMouse.y < 13.8 and PosAtualDoMouse.y > -13)):
             moving_vertex["ponto"].x = PosAtualDoMouse.x
@@ -710,12 +693,9 @@ def move_curvas_derivadas():
                 idCurvaEditada = moving_vertex["curva"].idCurva
 
                 indice_ponto_atual = Curvas.index(moving_vertex["curva"])
-                print(indice_ponto_atual)
                 curvas_antes = Curvas[:indice_ponto_atual+1]
                 curvas_antes.reverse()
-                print(curvas_antes)
                 curvas_depois = Curvas[indice_ponto_atual:]
-                print(curvas_depois)
                 
                 for i,curva in enumerate(curvas_antes):
 
@@ -749,7 +729,7 @@ def Motion(x: int, y: int):
     
     P = Ponto(x, y)
     PosAtualDoMouse = ConvertePonto(P)
-    move_curvas_derivadas()
+    move_vertices()
     
                         
 def PassiveMotion(x: int, y: int):
