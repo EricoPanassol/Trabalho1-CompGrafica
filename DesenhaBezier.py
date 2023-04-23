@@ -245,8 +245,9 @@ def DesenhaCurvas():
     # desenhaPoligonoControle = True
    
     for I in Curvas:
-        defineCor(Gold)
-        I.Traca()
+        if(desenhaCurva):
+            defineCor(Gold)
+            I.Traca()
         if(desenhaPoligonoControle):
             defineCor(BlueViolet)
             I.TracaPoligonoDeControle()
@@ -362,8 +363,8 @@ def display():
     glLineWidth(3)
     defineCor(Red)
     DesenhaPontos()
-    if(desenhaCurva):
-        DesenhaCurvas()
+    DesenhaCurvas()
+        
     ImprimeMensagens()
         
     PintaBotoes()
